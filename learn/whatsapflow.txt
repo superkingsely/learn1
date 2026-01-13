@@ -1,0 +1,20 @@
+
+WhatsApp Flows uses a specific set of UI Components defined in the Flow JSON Schema. Unlike HTML, you are limited to these pre-defined types.
+1. Core UI Component Types
+Category	Component Types (type)
+Containers	SingleColumnLayout, Section, Stack
+Text	TextHeading, TextSubheading, TextBody, TextCaption
+Form Inputs	TextInput, TextArea, CheckboxGroup, RadioButtons, Dropdown, DatePicker, OptIn
+Selection	ImagePicker, Chips
+Media	Image
+Interactive	Button, Footer
+2. Official Documentation Links
+Component Reference: The master list of every UI element and its allowed properties.
+Form Validation Guide: How to use the required and pattern properties for inputs.
+Action Grammar: Documentation for navigate, complete, and data_exchange (the logic behind buttons).
+Design Guidelines: Best practices for layout and user experience on mobile.
+3. Notable Constraints
+No Horizontal Rows: Everything is a vertical stack except for specific multi-column properties in CheckboxGroup or RadioButtons.
+The Footer: Only one Footer is allowed per screen, and it is always pinned to the bottom.
+Image URLs: Must be https and follow strict size/aspect ratio limits to avoid rendering errors on older phones.
+Do you want to see a complex form example that uses the Dropdown and DatePicker components?

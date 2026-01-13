@@ -1,0 +1,3 @@
+
+
+Regenerate Assets (Best Solution): Delete your current .vscode folder. Then, press Ctrl+Shift+P, type ".NET: Generate Assets for Build and Debug", and select it. This forces VS Code to re-scan your .csproj and create a working configuration.

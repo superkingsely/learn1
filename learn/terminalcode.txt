@@ -1,0 +1,18 @@
+Bash
+dotnet cli code
+------------to add git ignore file
+dotnet new gitignore
+dotnet new gitattributes---->for slnx proj
+
+#################################################
+dotnet new console -n YourProjectName
+code --command "workbench.action.debug.start"
+
+##################################
+# 1. Create the solution file
+dotnet new sln -n MyProjectName
+
+# 2. Add your existing console app to that solution
+dotnet sln add consoleapp.csproj
+###############################################
+npx create-next-app@latest --typescript
