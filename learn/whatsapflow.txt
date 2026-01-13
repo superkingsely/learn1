@@ -91,6 +91,125 @@ Do you want to see a complex form example that uses the Dropdown and DatePicker 
 }
 
 https://developers.facebook.com/docs/whatsapp/flows/reference/flowjson
+https://developers.facebook.com/docs/whatsapp/flows/reference/components
+--------------------------------------------------------------------------
+Passing data to the next screen:
+{
+  "type": "Footer",
+  "label": "Submit data",
+  "on-click-action": {
+    "name": "navigate",
+    "next": { "type": "screen", "name": "NEXT_SCREEN" },
+    "payload": {
+      "name": "${form.first_name}",
+      "lang": "${form.favourite_language}"
+    }
+  }
+}
+---------------------------------------------------------------------------------
+Submitting data to the server:
+{
+  "type": "Footer",
+  "label": "Submit data",
+  "on-click-action": {
+    "name": "data_exchange",
+    "payload": {
+      "name": "${form.first_name}",
+      "lang": "${form.favourite_language}"
+    }
+  }
+}
+--------------------------------------------------------
+In Flow JSON V4.0 you don't need to transfer the data via navigate since all data now is globally accessable, so instead you can keep payload as empty {}
+
+"on-click-action": {
+  "name": "navigate",
+  "next": {
+           "type": "screen",
+           "name": "SCREEN_TWO"
+          },
+   "payload": {}
+}
+And on SCREEN_TWO you can reference it as:
+
+{
+  "type": "TextBody",
+  "text": "${screen.SCREEN_ONE.data.field1}"
+}
+-------------------------------------------------------------------------------------
+
+Building forms guidelines
+In order to build Forms in Flow JSON you need to use Form components then provide the name and children properties
+
+Children properties must be an array of Form components
+
+Each Form component has its own property model, however the name property is required in all of them
+
+Interactive components can not be used outside forms.
+
+Component	Can Be Used Outside Forms? (Before Flow JSON 4.0)	Can Be Used Outside Forms? (Flow JSON 4.0+)
+Text (TextHeading, TextSubheading, TextCaption, TextBody)
+
+
+✅
+
+✅
+
+TextInput
+
+❌
+
+✅
+
+TextArea
+
+❌
+
+✅
+
+CheckboxGroup
+
+❌
+
+✅
+
+RadioButtonsGroup
+
+❌
+
+✅
+
+Footer
+
+✅
+
+✅
+
+OptIn
+
+❌
+
+✅
+
+Dropdown
+
+❌
+
+✅
+
+EmbeddedLink
+
+✅
+
+✅
+
+DatePicker
+
+❌
+
+✅
+
+
 ############################################################
 
 
