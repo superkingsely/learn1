@@ -18,3 +18,164 @@ No Horizontal Rows: Everything is a vertical stack except for specific multi-col
 The Footer: Only one Footer is allowed per screen, and it is always pinned to the bottom.
 Image URLs: Must be https and follow strict size/aspect ratio limits to avoid rendering errors on older phones.
 Do you want to see a complex form example that uses the Dropdown and DatePicker components?
+###########################################################################
+
+{
+  "version": "7.3",
+  "data_api_version": "3.0",
+  "routing_model": {
+    "MY_FIRST_SCREEN": [
+      "MY_SECOND_SCREEN"
+    ],
+    "MY_SECOND_SCREEN": [
+      "MY_THIRD_SCREEN"
+    ]
+  },
+  "screens": [
+    {
+      "id": "MY_FIRST_SCREEN",
+      "title": "First Screen",
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Footer",
+            "label": "Continue",
+            "on-click-action": {
+              "name": "data_exchange",
+              "payload": {}
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "MY_SECOND_SCREEN",
+      "title": "Second Screen",
+      "data": {},
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Footer",
+            "label": "Continue",
+            "on-click-action": {
+              "name": "data_exchange",
+              "payload": {}
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "MY_THIRD_SCREEN",
+      "title": "Third Screen",
+      "terminal": true,
+      "success": true,
+      "data": {},
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Footer",
+            "label": "Continue",
+            "on-click-action": {
+              "name": "data_exchange",
+              "payload": {}
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+
+https://developers.facebook.com/docs/whatsapp/flows/reference/flowjson
+############################################################
+
+
+
+{
+  "version": "7.3",
+  "screens": [
+    {
+      "id": "WELCOME_SCREEN",
+      "title": "Welcome",
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Image",
+            "src": "placehold.co",
+            "width": 100,
+            "height": 100,
+            "scale-type": "contain"
+          },
+          {
+            "type": "TextHeading",
+            "text": "Ship It\nTrack It\nReceive It!"
+          },
+          {
+            "type": "TextBody",
+            "text": "Welcome back to Cargo Express"
+          },
+          {
+            "type": "Image",
+            "src": "placehold.co",
+            "width": 300,
+            "height": 200,
+            "scale-type": "cover"
+          },
+           {
+            "type": "Button",
+            "label": "Sign In",
+            "on-click-action": {
+              "name": "navigate",
+              "next": {
+                "name": "SIGNIN_SCREEN",
+                "type": "screen"
+              }
+            }
+          },
+          {
+            "type": "Footer",
+            "label": "Register",
+            "on-click-action": {
+              "name": "navigate",
+              "next": {
+                "name": "REGISTER_SCREEN",
+                "type": "screen"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "REGISTER_SCREEN",
+      "title": "Complete Registration",
+      "terminal": true,
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "TextHeading",
+            "text": "Almost Done!"
+          },
+          {
+            "type": "TextBody",
+            "text": "Click below to finish your registration."
+          },
+          {
+            "type": "Footer",
+            "label": "Finish",
+            "on-click-action": {
+              "name": "complete",
+              "payload": {}
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
