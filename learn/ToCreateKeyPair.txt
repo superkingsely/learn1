@@ -11,3 +11,8 @@ This creates a 2048-bit RSA private key named private.pem.
 Step 2: Extract the Public Key
 bash
 openssl rsa -in private.pem -pubout -out public.pem
+##################################################
+Convert your private.pem to a Base64 string (do this once locally):
+bash
+# Linux/macOS
+base64 -i private.pem
