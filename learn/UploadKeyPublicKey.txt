@@ -1,0 +1,13 @@
+
+
+2. Upload the Public Key to Meta 
+You must register your public key with your WhatsApp Business Account (WABA). 
+Open public.pem in a text editor and copy the entire block, including:
+-----BEGIN PUBLIC KEY----- and -----END PUBLIC KEY-----.
+Upload via the WhatsApp Business Encryption Endpoint:
+Endpoint: POST /v21.0/{PHONE_NUMBER_ID}/whatsapp_business_encryption
+Body: business_public_key=<YOUR_PUBLIC_KEY_STRING>
+Note: If using Postman, select x-www-form-urlencoded
+
+myphonenosID=834043419801889
+my permanent_token=EAAMk5uDg2ioBQeQYCfaIp5LyAoQblCbp1J0pd3yP5g8UHeh1VYATUPRVSinPtw3iro4wvVAGMgxqHVaznZATGeapMPFA0jUiEKUBTv9Yi3KAU3nCromCOUH9xdHKPZCWO4Xqpfv9TxlWNQD8SZBkvuqVb9mHSZBpZA3FlFp5MDtLA0zU9kFkd1cZCXUWDUrAZDZD

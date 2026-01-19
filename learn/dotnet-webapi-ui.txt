@@ -6,6 +6,9 @@ two ui
 swagger
 scalar
 
+Scalar: dotnet add package Scalar.AspNetCore
+Swagger: dotnet add package Swashbuckle.AspNetCore
+
 Option A: Scalar (The Modern 2026 Favorite)
 Scalar is often preferred over Swagger now because it is faster and has a cleaner design.
 Install: dotnet add package Scalar.AspNetCore

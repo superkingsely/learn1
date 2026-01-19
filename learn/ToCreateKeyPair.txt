@@ -1,0 +1,13 @@
+
+
+1. Generate the Key Pair (OpenSSL) 
+Run these commands in your terminal to create the required files: 
+Step 1: Create the Private Key
+bash
+openssl genrsa -out private.pem 2048
+Use code with caution.
+
+This creates a 2048-bit RSA private key named private.pem.
+Step 2: Extract the Public Key
+bash
+openssl rsa -in private.pem -pubout -out public.pem

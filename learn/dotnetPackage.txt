@@ -1,0 +1,4 @@
+
+
+Scalar: dotnet add package Scalar.AspNetCore
+Swagger: dotnet add package Swashbuckle.AspNetCore

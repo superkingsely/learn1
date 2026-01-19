@@ -1,10 +1,16 @@
 ﻿
 
 
-Console.Write("Pls enter your name:");
-string name = Console.ReadLine();
-Console.WriteLine($"Hello, {name}!");
+// var word="Hello world";
+// -------------------------------
+// data type:
+// string--- e.g "hello"
+// integer---numbers
+// -------------------------------
+// operator
+// +,-,*,/,%
 
+Console.WriteLine("okay");
 
 
 Console.ReadLine();
