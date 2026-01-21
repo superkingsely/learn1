@@ -9,8 +9,23 @@
 // -------------------------------
 // operator
 // +,-,*,/,%
+namespace consoleapp;
 
-Console.WriteLine("okay");
+public class Program
+{
+	public static void Main()
+	{
+		Console.WriteLine("okay");
 
 
-Console.ReadLine();
+        static void Name(out string name)
+        {
+            name = Console.ReadLine();
+        }
+
+        Name(out string name);
+        Console.WriteLine("Hello " + name);
+        
+		Console.ReadLine();
+	}
+}
