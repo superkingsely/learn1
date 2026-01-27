@@ -1,0 +1,45 @@
+
+ssms =sql server management studio (client side)
+sql server(ms sql server) = engine
+
+cmd prompt to check if u hv an sql server=sc query type= service | findstr /I "SQL"
+
+response
+SERVICE_NAME: MSSQLSERVER
+SERVICE_NAME: MSSQL$SQLEXPRESS
+SERVICE_NAME: SQLBrowser
+----------------------------------------------
+SERVICE_NAME: SQLBrowser
+MSSQLSERVER → Default instance
+
+MSSQL$SQLEXPRESS → Express instance
+---------------------------------------------------
+##to check it the sql server is running
+$= sc query MSSQLSERVER
+response
+  TYPE               : 10  WIN32_OWN_PROCESS
+        STATE              : 4  RUNNING // running its runing
+                                (STOPPABLE, PAUSABLE, ACCEPTS_SHUTDOWN)
+        WIN32_EXIT_CODE    : 0  (0x0)
+        SERVICE_EXIT_CODE  : 0  (0x0)
+        CHECKPOINT         : 0x0
+        WAIT_HINT          : 0x0
+
+        ------------------------------------
+
+🛠️ OPTIONAL (Recommended) – Limit SQL Server Memory
+
+This makes SQL Server “well-behaved” on laptops.
+
+Open SSMS → Connect → New Query:
+
+$=EXEC sys.sp_configure 'show advanced options', 1;
+  RECONFIGURE;
+
+$=EXEC sys.sp_configure 'max server memory (MB)', 2048;
+  RECONFIGURE;
+
+
+🔒 This caps SQL Server at 2GB RAM max.
+
+------------------------------------------------
