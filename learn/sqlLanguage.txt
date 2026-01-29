@@ -1,0 +1,32 @@
+1️⃣ Using INFORMATION_SCHEMA.TABLES
+cmd below(standar way)
+SELECT TABLE_SCHEMA, TABLE_NAME
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_TYPE = 'BASE TABLE'
+ORDER BY TABLE_SCHEMA, TABLE_NAME;
+
+
+This will list all tables in the current database.
+
+TABLE_SCHEMA usually shows dbo, but if someone used other schemas, it will show them too.
+
+2️⃣ Using sys.tables
+cmd below
+SELECT name AS TableName
+FROM sys.tables
+ORDER BY name;
+
+-----------------------------------------------------------
+to view a particular tables
+
+SELECT * 
+FROM TableName;
+
+then from a particular tables
+
+USE PlaygroundDb;
+SELECT * FROM Users;
+---------------------------------------------------
+to select a data BASE
+
+SELECT name FROM sys.databases WHERE name = 'PlaygroundDb';

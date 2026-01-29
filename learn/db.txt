@@ -1,0 +1,36 @@
+
+Just like:
+
+SSMS → SQL Server
+
+pgAdmin → PostgreSQL
+
+MySQL Workbench → MySQL
+
+###########################################
+1️⃣ Minimum things you MUST install
+✅ Core EF package (this gives you DbContext)
+dotnet add package Microsoft.EntityFrameworkCore
+
+
+This package provides:
+
+DbContext
+
+DbSet<T>
+
+Change tracking
+
+LINQ support
+
+Without this, DbContext does not exist.
+
+2️⃣ Database provider (choose what DB you are using)
+🔹 For SQL Server
+dotnet add package Microsoft.EntityFrameworkCore.SqlServer
+
+🔹 For PostgreSQL
+dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL
+
+
+👉 You can install both in the same project if needed (FoodEase does this).
