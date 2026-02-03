@@ -1,0 +1,1377 @@
+
+# FoodEase API - Quick Reference & Code Examples
+
+## 📚 Table of Contents
+1. [Quick Setup](#quick-setup)
+2. [Project Structure Quick Reference](#project-structure-quick-reference)
+3. [Common Code Patterns](#common-code-patterns)
+4. [API Endpoint Examples](#api-endpoint-examples)
+5. [Database Query Examples](#database-query-examples)
+6. [Service Implementation Examples](#service-implementation-examples)
+7. [Controller Implementation Examples](#controller-implementation-examples)
+8. [Testing Examples](#testing-examples)
+9. [Troubleshooting](#troubleshooting)
+10. [Cheat Sheet](#cheat-sheet)
+
+---
+
+## Quick Setup
+
+### Prerequisites
+```bash
+# Install .NET 6 SDK
+https://dotnet.microsoft.com/download
+
+# Install PostgreSQL (14 or higher)
+https://www.postgresql.org/download/
+
+# Install Git
+https://git-scm.com/
+
+# Install VS Code or Visual Studio
+```
+
+### Clone & Setup
+```bash
+# Clone repository
+git clone https://github.com/superkingsely/food1.git
+cd food1
+
+# Restore NuGet packages
+dotnet restore
+
+# Build solution
+dotnet build
+
+# Create database
+createdb -U postgres foodease
+
+# Update database (apply migrations)
+cd foodapi
+dotnet ef database update
+
+# Run API (from foodapi directory)
+dotnet run
+
+# API will be available at https://localhost:5001
+# Swagger docs at https://localhost:5001/swagger
+```
+
+### Configuration File (appsettings.Development.json)
+Create this in `foodapi/` folder:
+```json
+{
+  "ConnectionStrings": {
+    "postgresConnection": "Host=localhost;Port=5432;Database=foodease;Username=postgres;Password=your_password"
+  },
+  "JWT": {
+    "SigningKey": "your-256-bit-secret-key-minimum-32-characters-long",
+    "ExpirationMinutes": 60
+  },
+  "Email": {
+    "SmtpServer": "smtp.gmail.com",
+    "SmtpPort": 587,
+    "SenderEmail": "your-email@gmail.com",
+    "SenderPassword": "your-app-password"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning"
+    }
+  }
+}
+```
+
+---
+
+## Project Structure Quick Reference
+
+```
+food1/
+│
+├── 🏗️ CORE LAYERS
+│   ├── FoodEase.Presentation/      ← Controllers (HTTP endpoints)
+│   ├── Service/                    ← Business logic
+│   ├── Repository/                 ← Data access
+│   └── Entities/                   ← Models & DTOs
+│
+├── 🔗 CONTRACTS (Interfaces)
+│   ├── Contracts/                  ← Repository interfaces
+│   └── Service.Contracts/          ← Service interfaces
+│
+├── 📁 SUPPORTING MODULES
+│   ├── LoggingService/             ← Logging utilities
+│   ├── EmailViews/                 ← Email templates
+│   └── foodapi/                    ← Main entry point (program.cs)
+│
+└── 📄 Documentation (You create these)
+    ├── API_REVERSE_ENGINEERING_GUIDE.md
+    ├── ARCHITECTURE_DIAGRAMS.md
+    └── QUICK_REFERENCE.md
+```
+
+### File Location Guide
+
+| What You Need | Location |
+|---|---|
+| Create new Entity | `Entities/DatabaseModels/YourEntity.cs` |
+| Create Repository Interface | `Contracts/IYourRepository.cs` |
+| Create Repository Implementation | `Repository/ModelRepositories/YourRepository.cs` |
+| Create Service Interface | `Service.Contracts/IYourService.cs` |
+| Create Service Implementation | `Service/YourService.cs` |
+| Create API Endpoints | `FoodEase.Presentation/Controllers/YourController.cs` |
+| Create DTOs | `Entities/DataTransferObjects/Dtos.cs` |
+| Create AutoMapper Profile | `Service/Automapper/YourProfile.cs` |
+| Add Database Migration | `foodapi/Migrations/` (auto-generated) |
+| Configuration Settings | `foodapi/appsettings.json` |
+
+---
+
+## Common Code Patterns
+
+### Pattern 1: Creating a Repository
+
+**File**: `Repository/ModelRepositories/OrderRepository.cs`
+
+```csharp
+using Contracts;
+using Entities.DatabaseModels;
+using Microsoft.EntityFrameworkCore;
+
+namespace Repository.ModelRepositories
+{
+    public class OrderRepository : RepositoryBase<Order>, IOrderRepository
+    {
+        public OrderRepository(RepositoryContext context) : base(context) { }
+
+        // Get all orders
+        public async Task<IEnumerable<Order>> GetAllOrdersAsync()
+        {
+            return await FindAll()
+                .Include(o => o.Items)
+                .Include(o => o.PaymentChannels)
+                .OrderByDescending(o => o.CreatedAt)
+                .ToListAsync();
+        }
+
+        // Get order by ID
+        public async Task<Order> GetOrderByIdAsync(string id)
+        {
+            return await FindByCondition(o => o.Id == id)
+                .Include(o => o.Items)
+                .FirstOrDefaultAsync();
+        }
+
+        // Get unpaid orders
+        public async Task<IEnumerable<Order>> GetUnpaidOrdersAsync(string revenueCenterId)
+        {
+            return await FindByCondition(o => 
+                o.RevenueCenterId == revenueCenterId && 
+                o.Status == OrderStatus.Unpaid)
+                .ToListAsync();
+        }
+
+        // Complex query with multiple conditions
+        public async Task<IEnumerable<Order>> GetOrdersByFiltersAsync(
+            string restaurantId, 
+            DateTime startDate, 
+            DateTime endDate)
+        {
+            return await FindByCondition(o =>
+                o.RestaurantId == restaurantId &&
+                o.CreatedAt >= startDate &&
+                o.CreatedAt <= endDate)
+                .OrderBy(o => o.CreatedAt)
+                .ToListAsync();
+        }
+    }
+}
+```
+
+### Pattern 2: Creating a Service
+
+**File**: `Service/OrderService.cs`
+
+```csharp
+using AutoMapper;
+using Contracts;
+using Entities.DatabaseModels;
+using Entities.DataTransferObjects;
+using Microsoft.Extensions.Logging;
+using Service.Contracts;
+
+namespace Service
+{
+    public class OrderService : IOrderService
+    {
+        private readonly IRepositoryManager _repository;
+        private readonly IMapper _mapper;
+        private readonly ILogger<OrderService> _logger;
+
+        public OrderService(
+            IRepositoryManager repository,
+            IMapper mapper,
+            ILogger<OrderService> logger)
+        {
+            _repository = repository;
+            _mapper = mapper;
+            _logger = logger;
+        }
+
+        // Get all orders with error handling
+        public async Task<ServiceResult<IEnumerable<OrderDto>>> GetAllOrdersAsync()
+        {
+            try
+            {
+                _logger.LogInformation("Fetching all orders");
+                
+                var orders = await _repository.OrderRepository.GetAllOrdersAsync();
+                var orderDtos = _mapper.Map<IEnumerable<OrderDto>>(orders);
+                
+                return ServiceResult<IEnumerable<OrderDto>>.Success(orderDtos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error fetching orders: {ex.Message}");
+                return ServiceResult<IEnumerable<OrderDto>>.Failure(ex.Message);
+            }
+        }
+
+        // Create order with validation
+        public async Task<ServiceResult<OrderDto>> CreateOrderAsync(CreateOrderDto dto)
+        {
+            try
+            {
+                // Validation
+                if (string.IsNullOrEmpty(dto.RestaurantId))
+                    return ServiceResult<OrderDto>.Failure("RestaurantId is required");
+
+                if (dto.Items == null || !dto.Items.Any())
+                    return ServiceResult<OrderDto>.Failure("Order must contain at least one item");
+
+                if (dto.Items.Sum(i => i.Quantity) <= 0)
+                    return ServiceResult<OrderDto>.Failure("Total quantity must be greater than 0");
+
+                _logger.LogInformation($"Creating order for restaurant: {dto.RestaurantId}");
+
+                // Map DTO to entity
+                var order = _mapper.Map<Order>(dto);
+                order.OrderNumber = GenerateOrderNumber();
+                order.CreatedAt = DateTime.UtcNow;
+                order.Status = OrderStatus.Created;
+
+                // Save to database
+                await _repository.OrderRepository.CreateAsync(order);
+                await _repository.SaveAsync();
+
+                _logger.LogInformation($"Order created: {order.Id}");
+
+                // Map back to DTO and return
+                var result = _mapper.Map<OrderDto>(order);
+                return ServiceResult<OrderDto>.Success(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error creating order: {ex.Message}");
+                return ServiceResult<OrderDto>.Failure(ex.Message);
+            }
+        }
+
+        // Update order
+        public async Task<ServiceResult<OrderDto>> UpdateOrderAsync(string id, UpdateOrderDto dto)
+        {
+            try
+            {
+                var order = await _repository.OrderRepository.GetOrderByIdAsync(id);
+                if (order == null)
+                    return ServiceResult<OrderDto>.Failure("Order not found");
+
+                _mapper.Map(dto, order);
+                order.UpdatedAt = DateTime.UtcNow;
+
+                _repository.OrderRepository.Update(order);
+                await _repository.SaveAsync();
+
+                var result = _mapper.Map<OrderDto>(order);
+                return ServiceResult<OrderDto>.Success(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error updating order: {ex.Message}");
+                return ServiceResult<OrderDto>.Failure(ex.Message);
+            }
+        }
+
+        // Delete order
+        public async Task<ServiceResult<bool>> DeleteOrderAsync(string id)
+        {
+            try
+            {
+                var order = await _repository.OrderRepository.GetOrderByIdAsync(id);
+                if (order == null)
+                    return ServiceResult<bool>.Failure("Order not found");
+
+                _repository.OrderRepository.Delete(order);
+                await _repository.SaveAsync();
+
+                return ServiceResult<bool>.Success(true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error deleting order: {ex.Message}");
+                return ServiceResult<bool>.Failure(ex.Message);
+            }
+        }
+
+        private string GenerateOrderNumber()
+        {
+            return $"ORD-{DateTime.Now:yyyyMMdd}-{Guid.NewGuid().ToString().Substring(0, 8)}";
+        }
+    }
+}
+```
+
+### Pattern 3: Creating a Controller
+
+**File**: `FoodEase.Presentation/Controllers/OrderController.cs`
+
+```csharp
+using Entities.DataTransferObjects;
+using FoodEase.Presentation;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Service.Contracts;
+
+namespace FoodEase.Presentation.Controllers
+{
+    [Route("api/v1/[controller]")]
+    [ApiController]
+    [Authorize]  // Requires JWT authentication
+    public class OrderController : ControllerBase
+    {
+        private readonly IServiceManager _service;
+
+        public OrderController(IServiceManager service)
+        {
+            _service = service;
+        }
+
+        // GET: api/v1/order
+        [HttpGet]
+        public async Task<IActionResult> GetAllOrders()
+        {
+            var result = await _service.OrderService.GetAllOrdersAsync();
+            
+            if (!result.IsSuccess)
+                return BadRequest(ResponseBuilder.BuildResponse(null, result.Error));
+
+            return Ok(ResponseBuilder.BuildResponse(null, result.Data));
+        }
+
+        // GET: api/v1/order/{id}
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetOrderById(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+                return BadRequest(ResponseBuilder.BuildResponse(null, "ID is required"));
+
+            var result = await _service.OrderService.GetOrderByIdAsync(id);
+            
+            if (!result.IsSuccess)
+                return NotFound(ResponseBuilder.BuildResponse(null, result.Error));
+
+            return Ok(ResponseBuilder.BuildResponse(null, result.Data));
+        }
+
+        // POST: api/v1/order
+        [HttpPost]
+        public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ResponseBuilder.BuildResponse(ModelState, null));
+
+            var result = await _service.OrderService.CreateOrderAsync(dto);
+            
+            if (!result.IsSuccess)
+                return BadRequest(ResponseBuilder.BuildResponse(null, result.Error));
+
+            return CreatedAtAction(
+                nameof(GetOrderById),
+                new { id = result.Data.Id },
+                ResponseBuilder.BuildResponse(null, result.Data)
+            );
+        }
+
+        // PUT: api/v1/order/{id}
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateOrder(
+            string id,
+            [FromBody] UpdateOrderDto dto)
+        {
+            if (string.IsNullOrEmpty(id))
+                return BadRequest(ResponseBuilder.BuildResponse(null, "ID is required"));
+
+            if (!ModelState.IsValid)
+                return BadRequest(ResponseBuilder.BuildResponse(ModelState, null));
+
+            var result = await _service.OrderService.UpdateOrderAsync(id, dto);
+            
+            if (!result.IsSuccess)
+                return BadRequest(ResponseBuilder.BuildResponse(null, result.Error));
+
+            return Ok(ResponseBuilder.BuildResponse(null, result.Data));
+        }
+
+        // DELETE: api/v1/order/{id}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteOrder(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+                return BadRequest(ResponseBuilder.BuildResponse(null, "ID is required"));
+
+            var result = await _service.OrderService.DeleteOrderAsync(id);
+            
+            if (!result.IsSuccess)
+                return BadRequest(ResponseBuilder.BuildResponse(null, result.Error));
+
+            return Ok(ResponseBuilder.BuildResponse(null, "Order deleted successfully"));
+        }
+
+        // Example: Custom action with query parameters
+        [HttpGet("by-restaurant/{restaurantId}")]
+        public async Task<IActionResult> GetOrdersByRestaurant(
+            string restaurantId,
+            [FromQuery] DateTime? startDate = null,
+            [FromQuery] DateTime? endDate = null)
+        {
+            if (string.IsNullOrEmpty(restaurantId))
+                return BadRequest(ResponseBuilder.BuildResponse(null, "RestaurantId is required"));
+
+            var start = startDate ?? DateTime.Now.AddDays(-30);
+            var end = endDate ?? DateTime.Now;
+
+            var result = await _service.OrderService
+                .GetOrdersByFiltersAsync(restaurantId, start, end);
+            
+            return Ok(ResponseBuilder.BuildResponse(null, result));
+        }
+    }
+}
+```
+
+---
+
+## API Endpoint Examples
+
+### Authentication Endpoints
+
+```bash
+# Login
+POST /api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+
+# Response (200 OK)
+{
+  "success": true,
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIs...",
+    "expiresIn": 3600,
+    "user": {
+      "id": "user-123",
+      "email": "user@example.com",
+      "roles": ["Admin"]
+    }
+  },
+  "errors": []
+}
+```
+
+### Order Endpoints
+
+```bash
+# Get all orders
+GET /api/v1/order
+Authorization: Bearer {token}
+
+# Response (200 OK)
+{
+  "success": true,
+  "data": [
+    {
+      "id": "ord-123",
+      "orderNumber": "ORD-20260202-abcd1234",
+      "restaurantId": "rest-123",
+      "total": 50000,
+      "status": "completed",
+      "createdAt": "2026-02-02T10:30:00Z"
+    }
+  ],
+  "errors": []
+}
+
+# Create order
+POST /api/v1/order
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "restaurantId": "rest-123",
+  "revenueCenterId": "rc-456",
+  "customerId": "cust-789",
+  "items": [
+    {
+      "itemId": "item-001",
+      "quantity": 2,
+      "unitPrice": 5000
+    }
+  ]
+}
+
+# Response (201 Created)
+{
+  "success": true,
+  "data": {
+    "id": "ord-456",
+    "orderNumber": "ORD-20260202-xyz789",
+    "total": 10000,
+    "status": "created"
+  },
+  "errors": []
+}
+
+# Get single order
+GET /api/v1/order/ord-123
+Authorization: Bearer {token}
+
+# Update order
+PUT /api/v1/order/ord-123
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "status": "completed"
+}
+
+# Delete order
+DELETE /api/v1/order/ord-123
+Authorization: Bearer {token}
+```
+
+### Item Endpoints
+
+```bash
+# Get all items
+GET /api/v1/item
+Authorization: Bearer {token}
+
+# Create item
+POST /api/v1/item
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "itemCode": "ITEM001",
+  "itemName": "Jollof Rice",
+  "itemClassId": "class-123",
+  "unitPrice": 2500,
+  "description": "Delicious jollof rice"
+}
+
+# Get item with recipe
+GET /api/v1/item/item-123/recipe
+Authorization: Bearer {token}
+
+# Update item recipe
+PUT /api/v1/item/item-123/recipe
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "recipeItems": [
+    {
+      "recipeItemId": "ingredient-1",
+      "quantity": 2.5,
+      "unitOfMeasure": "kg"
+    }
+  ]
+}
+```
+
+---
+
+## Database Query Examples
+
+### Repository Query Patterns
+
+```csharp
+// Find all
+var items = await repository.ItemRepository.FindAll().ToListAsync();
+
+// Find with condition
+var unpaidOrders = await repository.OrderRepository
+    .FindByCondition(o => o.Status == OrderStatus.Unpaid)
+    .ToListAsync();
+
+// Include related data (eager loading)
+var ordersWithItems = await repository.OrderRepository
+    .FindAll()
+    .Include(o => o.Items)
+    .Include(o => o.PaymentChannels)
+    .ToListAsync();
+
+// Filter with multiple conditions
+var orders = await repository.OrderRepository
+    .FindByCondition(o =>
+        o.RestaurantId == restaurantId &&
+        o.CreatedAt >= startDate &&
+        o.CreatedAt <= endDate)
+    .OrderByDescending(o => o.CreatedAt)
+    .ToListAsync();
+
+// Pagination
+var page = 2;
+var pageSize = 10;
+var items = await repository.ItemRepository
+    .FindAll()
+    .Skip((page - 1) * pageSize)
+    .Take(pageSize)
+    .ToListAsync();
+
+// Group and aggregate
+var salesByRestaurant = await repository.OrderRepository
+    .FindAll()
+    .GroupBy(o => o.RestaurantId)
+    .Select(g => new {
+        RestaurantId = g.Key,
+        TotalSales = g.Sum(o => o.Total),
+        OrderCount = g.Count()
+    })
+    .ToListAsync();
+
+// Complex join
+var customersWithOrders = await repository.CustomerRepository
+    .FindAll()
+    .Include(c => c.Orders)
+    .ThenInclude(o => o.Items)
+    .Where(c => c.Orders.Count() > 5)
+    .ToListAsync();
+
+// Using SQL - if LINQ not sufficient
+var sql = @"
+    SELECT r.*, COUNT(o.id) as order_count
+    FROM restaurants r
+    LEFT JOIN orders o ON r.id = o.restaurant_id
+    GROUP BY r.id
+    HAVING COUNT(o.id) > 5
+";
+var results = await context.Orders
+    .FromSqlRaw(sql)
+    .ToListAsync();
+```
+
+---
+
+## Service Implementation Examples
+
+### Example 1: Item Service with Recipe Management
+
+```csharp
+public class ItemService : IItemService
+{
+    private readonly IRepositoryManager _repository;
+    private readonly IMapper _mapper;
+
+    public ItemService(IRepositoryManager repository, IMapper mapper)
+    {
+        _repository = repository;
+        _mapper = mapper;
+    }
+
+    // Get item with recipe composition
+    public async Task<ServiceResult<ItemWithRecipeDto>> GetItemWithRecipeAsync(string itemId)
+    {
+        var item = await _repository.ItemRepository.GetByIdAsync(itemId);
+        if (item == null)
+            return ServiceResult<ItemWithRecipeDto>.Failure("Item not found");
+
+        var recipes = await _repository.ItemRecipeRepository
+            .FindByCondition(r => r.ItemId == itemId)
+            .ToListAsync();
+
+        var result = _mapper.Map<ItemWithRecipeDto>(item);
+        result.Recipes = _mapper.Map<List<ItemRecipeDto>>(recipes);
+
+        return ServiceResult<ItemWithRecipeDto>.Success(result);
+    }
+
+    // Update item recipe
+    public async Task<ServiceResult<bool>> UpdateRecipeAsync(
+        string itemId,
+        UpdateRecipeDto dto)
+    {
+        // Validate item exists
+        var item = await _repository.ItemRepository.GetByIdAsync(itemId);
+        if (item == null)
+            return ServiceResult<bool>.Failure("Item not found");
+
+        // Remove old recipes
+        var oldRecipes = await _repository.ItemRecipeRepository
+            .FindByCondition(r => r.ItemId == itemId)
+            .ToListAsync();
+
+        foreach (var recipe in oldRecipes)
+        {
+            _repository.ItemRecipeRepository.Delete(recipe);
+        }
+
+        // Add new recipes
+        foreach (var recipeItem in dto.RecipeItems)
+        {
+            var newRecipe = new ItemRecipe
+            {
+                ItemId = itemId,
+                RecipeItemId = recipeItem.RecipeItemId,
+                Quantity = recipeItem.Quantity,
+                UnitOfMeasure = recipeItem.UnitOfMeasure
+            };
+
+            await _repository.ItemRecipeRepository.CreateAsync(newRecipe);
+        }
+
+        await _repository.SaveAsync();
+        return ServiceResult<bool>.Success(true);
+    }
+
+    // Calculate item cost based on recipe
+    public async Task<ServiceResult<decimal>> CalculateItemCostAsync(string itemId)
+    {
+        var recipes = await _repository.ItemRecipeRepository
+            .FindByCondition(r => r.ItemId == itemId)
+            .Include(r => r.RecipeItem)
+            .ToListAsync();
+
+        decimal totalCost = 0;
+
+        foreach (var recipe in recipes)
+        {
+            // Get unit cost of ingredient
+            var source = await _repository.ItemSourceRepository
+                .FindByCondition(s => s.ItemId == recipe.RecipeItemId)
+                .OrderByDescending(s => s.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            if (source != null)
+            {
+                totalCost += (source.UnitCost * recipe.Quantity);
+            }
+        }
+
+        return ServiceResult<decimal>.Success(totalCost);
+    }
+}
+```
+
+### Example 2: Payment Service
+
+```csharp
+public class PaymentService : IPaymentService
+{
+    private readonly IRepositoryManager _repository;
+    private readonly IFlutterwaveService _flutterwave;
+    private readonly IPayStackService _paystack;
+    private readonly ILogger<PaymentService> _logger;
+
+    public PaymentService(
+        IRepositoryManager repository,
+        IFlutterwaveService flutterwave,
+        IPayStackService paystack,
+        ILogger<PaymentService> logger)
+    {
+        _repository = repository;
+        _flutterwave = flutterwave;
+        _paystack = paystack;
+        _logger = logger;
+    }
+
+    public async Task<ServiceResult<PaymentResponseDto>> ProcessPaymentAsync(
+        string orderId,
+        PaymentRequestDto request)
+    {
+        try
+        {
+            // Get order
+            var order = await _repository.OrderRepository.GetByIdAsync(orderId);
+            if (order == null)
+                return ServiceResult<PaymentResponseDto>.Failure("Order not found");
+
+            if (order.Total != request.Amount)
+                return ServiceResult<PaymentResponseDto>.Failure("Amount mismatch");
+
+            // Route to payment gateway
+            PaymentResponseDto paymentResult = null;
+
+            if (request.PaymentMethod == "flutterwave")
+            {
+                paymentResult = await _flutterwave.ProcessPaymentAsync(new {
+                    amount = request.Amount,
+                    orderId = orderId,
+                    email = request.Email
+                });
+            }
+            else if (request.PaymentMethod == "paystack")
+            {
+                paymentResult = await _paystack.ProcessPaymentAsync(new {
+                    amount = request.Amount,
+                    orderId = orderId,
+                    email = request.Email
+                });
+            }
+
+            if (!paymentResult.Success)
+                return ServiceResult<PaymentResponseDto>.Failure(paymentResult.Message);
+
+            // Update order payment status
+            order.Status = OrderStatus.Paid;
+            order.PaidAt = DateTime.UtcNow;
+
+            // Create transaction record
+            var transaction = new Transaction
+            {
+                OrderId = orderId,
+                Amount = request.Amount,
+                PaymentMethod = request.PaymentMethod,
+                TransactionReference = paymentResult.TransactionReference,
+                Status = "Success"
+            };
+
+            await _repository.TransactionRepository.CreateAsync(transaction);
+            _repository.OrderRepository.Update(order);
+            await _repository.SaveAsync();
+
+            _logger.LogInformation($"Payment processed for order {orderId}");
+
+            return ServiceResult<PaymentResponseDto>.Success(paymentResult);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Payment processing error: {ex.Message}");
+            return ServiceResult<PaymentResponseDto>.Failure(ex.Message);
+        }
+    }
+
+    public async Task<ServiceResult<bool>> RefundPaymentAsync(
+        string transactionId,
+        decimal refundAmount)
+    {
+        try
+        {
+            var transaction = await _repository.TransactionRepository
+                .GetByIdAsync(transactionId);
+
+            if (transaction == null)
+                return ServiceResult<bool>.Failure("Transaction not found");
+
+            // Call payment gateway for refund
+            var refundResult = await _flutterwave.RefundAsync(
+                transaction.TransactionReference,
+                refundAmount);
+
+            if (!refundResult.Success)
+                return ServiceResult<bool>.Failure(refundResult.Message);
+
+            // Create refund record
+            var refund = new RefundLog
+            {
+                TransactionId = transactionId,
+                Amount = refundAmount,
+                Status = "Completed",
+                RefundDate = DateTime.UtcNow
+            };
+
+            await _repository.RefundLogRepository.CreateAsync(refund);
+            await _repository.SaveAsync();
+
+            return ServiceResult<bool>.Success(true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Refund error: {ex.Message}");
+            return ServiceResult<bool>.Failure(ex.Message);
+        }
+    }
+}
+```
+
+---
+
+## Controller Implementation Examples
+
+### Example 1: Restaurant Controller with Admin Checks
+
+```csharp
+[Route("api/v1/[controller]")]
+[ApiController]
+[Authorize(Roles = "Admin")]  // Only admins can access
+public class RestaurantController : ControllerBase
+{
+    private readonly IServiceManager _service;
+
+    [HttpGet]
+    [AllowAnonymous]  // Override [Authorize]
+    public async Task<IActionResult> GetAllRestaurants()
+    {
+        var result = await _service.RestaurantService.GetAllRestaurantsAsync();
+        return Ok(ResponseBuilder.BuildResponse(null, result.Data));
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "SuperAdmin")]  // More restrictive
+    public async Task<IActionResult> CreateRestaurant(
+        [FromBody] CreateRestaurantDto dto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ResponseBuilder.BuildResponse(ModelState, null));
+
+        var result = await _service.RestaurantService.CreateRestaurantAsync(dto);
+        if (!result.IsSuccess)
+            return BadRequest(ResponseBuilder.BuildResponse(null, result.Error));
+
+        return CreatedAtAction(nameof(GetRestaurantById),
+            new { id = result.Data.Id },
+            ResponseBuilder.BuildResponse(null, result.Data));
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetRestaurantById(string id)
+    {
+        var result = await _service.RestaurantService.GetRestaurantByIdAsync(id);
+        if (!result.IsSuccess)
+            return NotFound(ResponseBuilder.BuildResponse(null, result.Error));
+
+        return Ok(ResponseBuilder.BuildResponse(null, result.Data));
+    }
+}
+```
+
+### Example 2: Report Controller with Complex Filtering
+
+```csharp
+[Route("api/v1/[controller]")]
+[ApiController]
+[Authorize]
+public class ReportController : ControllerBase
+{
+    private readonly IServiceManager _service;
+
+    [HttpGet("sales")]
+    public async Task<IActionResult> GetSalesReport(
+        [FromQuery] string restaurantId,
+        [FromQuery] DateTime? startDate = null,
+        [FromQuery] DateTime? endDate = null,
+        [FromQuery] string revenueCenterId = null)
+    {
+        if (string.IsNullOrEmpty(restaurantId))
+            return BadRequest(ResponseBuilder.BuildResponse(null,
+                "RestaurantId is required"));
+
+        var start = startDate ?? DateTime.Now.AddMonths(-1);
+        var end = endDate ?? DateTime.Now;
+
+        var result = await _service.ReportService.GetSalesReportAsync(
+            restaurantId,
+            revenueCenterId,
+            start,
+            end);
+
+        return Ok(ResponseBuilder.BuildResponse(null, result.Data));
+    }
+
+    [HttpGet("food-cost")]
+    public async Task<IActionResult> GetFoodCostReport(
+        [FromQuery] string restaurantId,
+        [FromQuery] DateTime? startDate = null,
+        [FromQuery] DateTime? endDate = null)
+    {
+        var result = await _service.ReportService.GetFoodCostReportAsync(
+            restaurantId,
+            startDate ?? DateTime.Now.AddMonths(-1),
+            endDate ?? DateTime.Now);
+
+        return Ok(ResponseBuilder.BuildResponse(null, result.Data));
+    }
+
+    [HttpGet("export")]
+    public async Task<IActionResult> ExportReport(
+        [FromQuery] string reportType,
+        [FromQuery] string restaurantId)
+    {
+        var result = await _service.ReportService.ExportReportAsync(reportType, restaurantId);
+
+        if (!result.IsSuccess)
+            return BadRequest(ResponseBuilder.BuildResponse(null, result.Error));
+
+        var bytes = Encoding.UTF8.GetBytes(result.Data);
+        return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            $"report-{DateTime.Now:yyyy-MM-dd}.xlsx");
+    }
+}
+```
+
+---
+
+## Testing Examples
+
+### Unit Testing Service
+
+```csharp
+[TestFixture]
+public class OrderServiceTests
+{
+    private Mock<IRepositoryManager> _mockRepository;
+    private Mock<IMapper> _mockMapper;
+    private OrderService _service;
+
+    [SetUp]
+    public void Setup()
+    {
+        _mockRepository = new Mock<IRepositoryManager>();
+        _mockMapper = new Mock<IMapper>();
+        _service = new OrderService(_mockRepository.Object, _mockMapper.Object);
+    }
+
+    [Test]
+    public async Task GetAllOrders_ReturnsListOfOrders()
+    {
+        // Arrange
+        var orders = new List<Order> {
+            new Order { Id = "ord-1", OrderNumber = "ORD-001" },
+            new Order { Id = "ord-2", OrderNumber = "ORD-002" }
+        };
+
+        var orderDtos = new List<OrderDto> {
+            new OrderDto { Id = "ord-1" },
+            new OrderDto { Id = "ord-2" }
+        };
+
+        _mockRepository
+            .Setup(r => r.OrderRepository.GetAllOrdersAsync())
+            .ReturnsAsync(orders);
+
+        _mockMapper
+            .Setup(m => m.Map<IEnumerable<OrderDto>>(It.IsAny<IEnumerable<Order>>()))
+            .Returns(orderDtos);
+
+        // Act
+        var result = await _service.GetAllOrdersAsync();
+
+        // Assert
+        Assert.IsTrue(result.IsSuccess);
+        Assert.AreEqual(2, result.Data.Count());
+    }
+
+    [Test]
+    public async Task CreateOrder_WithInvalidData_ReturnsFail()
+    {
+        // Arrange
+        var invalidDto = new CreateOrderDto { Items = null };
+
+        // Act
+        var result = await _service.CreateOrderAsync(invalidDto);
+
+        // Assert
+        Assert.IsFalse(result.IsSuccess);
+        Assert.IsNotNull(result.Error);
+    }
+}
+```
+
+### Integration Testing Controller
+
+```csharp
+[TestFixture]
+public class OrderControllerTests
+{
+    private WebApplicationFactory<Program> _factory;
+    private HttpClient _client;
+
+    [SetUp]
+    public void Setup()
+    {
+        _factory = new WebApplicationFactory<Program>();
+        _client = _factory.CreateClient();
+    }
+
+    [Test]
+    public async Task GetAllOrders_Returns200()
+    {
+        // Arrange
+        var token = GetValidToken();
+        _client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", token);
+
+        // Act
+        var response = await _client.GetAsync("/api/v1/order");
+
+        // Assert
+        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Test]
+    public async Task CreateOrder_WithValidData_Returns201()
+    {
+        // Arrange
+        var dto = new CreateOrderDto {
+            RestaurantId = "rest-123",
+            Items = new List<OrderItemDto> {
+                new OrderItemDto { ItemId = "item-1", Quantity = 2 }
+            }
+        };
+
+        var token = GetValidToken();
+        _client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", token);
+
+        var content = new StringContent(
+            JsonSerializer.Serialize(dto),
+            Encoding.UTF8,
+            "application/json");
+
+        // Act
+        var response = await _client.PostAsync("/api/v1/order", content);
+
+        // Assert
+        Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
+    }
+
+    private string GetValidToken()
+    {
+        // Generate valid JWT token for testing
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var key = Encoding.ASCII.GetBytes("your-256-bit-secret-key-here");
+
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(new[] {
+                new Claim(ClaimTypes.NameIdentifier, "test-user"),
+                new Claim(ClaimTypes.Role, "Admin")
+            }),
+            Expires = DateTime.UtcNow.AddHours(1),
+            SigningCredentials = new SigningCredentials(
+                new SymmetricSecurityKey(key),
+                SecurityAlgorithms.HmacSha256Signature)
+        };
+
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+        return tokenHandler.WriteToken(token);
+    }
+}
+```
+
+---
+
+## Troubleshooting
+
+### Issue: DbContext Migration Failed
+
+```bash
+# Problem: "Unable to create an object of type 'RepositoryContext'"
+
+# Solution 1: Ensure connection string is correct
+# In appsettings.json:
+"postgresConnection": "Host=localhost;Port=5432;Database=foodease;Username=postgres;Password=correct_password"
+
+# Solution 2: Remove previous migrations
+dotnet ef migrations remove --project foodapi
+
+# Solution 3: Force database update
+dotnet ef database update --force --project foodapi
+```
+
+### Issue: JWT Token Validation Fails
+
+```bash
+# Problem: 401 Unauthorized even with valid token
+
+# Solution 1: Check secret key matches
+# In Authentication.cs:
+var jwt = configuration.GetSection("JWT").Get<JWT>();
+// Should match appsettings.json
+
+# Solution 2: Check token expiration
+// Token must not be expired
+
+# Solution 3: Add token to request correctly
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs... (no extra spaces)
+```
+
+### Issue: Circular Reference in AutoMapper
+
+```bash
+# Problem: "Infinite recursion detected"
+
+# Solution: Configure mapping to stop infinite loops
+CreateMap<Order, OrderDto>()
+    .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.Items))
+    .ForMember(dest => dest.Restaurant, opt => opt.Ignore()); // Skip recursive mapping
+```
+
+### Issue: N+1 Query Problem
+
+```bash
+# Problem: One query per related entity (slow performance)
+
+# Solution: Use eager loading with .Include()
+var orders = await _repository.OrderRepository
+    .FindAll()
+    .Include(o => o.Items)      // Load items in one query
+    .Include(o => o.PaymentChannels)  // Load payments in one query
+    .ToListAsync();              // Single database round-trip
+```
+
+### Issue: Service Dependency Not Found
+
+```bash
+# Problem: "No service for type 'IMyService' has been registered"
+
+# Solution: Ensure service is registered in ServiceManager
+// In ServiceManager constructor:
+_myService = new Lazy<IMyService>(() =>
+    new MyService(_repository, _mapper));
+
+// And property:
+public IMyService MyService => _myService.Value;
+
+// And in ServiceExtensions.cs (if needed):
+services.AddScoped<IMyService, MyService>();
+```
+
+---
+
+## Cheat Sheet
+
+### File Naming Conventions
+
+| Item | Pattern | Example |
+|------|---------|---------|
+| Entity | `PascalCase.cs` | `Order.cs`, `Customer.cs` |
+| Repository Interface | `I{Entity}Repository.cs` | `IOrderRepository.cs` |
+| Repository Implementation | `{Entity}Repository.cs` | `OrderRepository.cs` |
+| Service Interface | `I{Entity}Service.cs` | `IOrderService.cs` |
+| Service Implementation | `{Entity}Service.cs` | `OrderService.cs` |
+| Controller | `{Entity}Controller.cs` | `OrderController.cs` |
+| DTO | `{Entity}Dto.cs` | `OrderDto.cs` |
+| AutoMapper Profile | `{Entity}Profile.cs` | `OrderProfile.cs` |
+| Migration | Auto-generated | `20260202100000_AddOrderTable.cs` |
+
+### Common HTTP Status Codes
+
+| Code | Meaning | Use Case |
+|------|---------|----------|
+| 200 | OK | Successful GET, PUT |
+| 201 | Created | Successful POST |
+| 204 | No Content | Successful DELETE |
+| 400 | Bad Request | Validation error |
+| 401 | Unauthorized | No/invalid JWT token |
+| 403 | Forbidden | Insufficient permissions |
+| 404 | Not Found | Resource doesn't exist |
+| 409 | Conflict | Duplicate entry |
+| 500 | Server Error | Unhandled exception |
+
+### LINQ Quick Reference
+
+```csharp
+// Get all
+.ToList() / .ToListAsync()
+
+// Get first or default
+.FirstOrDefault() / .FirstOrDefaultAsync()
+
+// Filter
+.Where(x => x.Status == "Active")
+
+// Order
+.OrderBy(x => x.Name)
+.OrderByDescending(x => x.CreatedDate)
+
+// Include related data
+.Include(x => x.Orders)
+
+// Join
+.Join(otherSet, x => x.Id, y => y.Id, (x, y) => new { x, y })
+
+// Group
+.GroupBy(x => x.Category).Select(g => new { Category = g.Key, Count = g.Count() })
+
+// Aggregate
+.Sum(x => x.Amount)
+.Average(x => x.Price)
+.Count()
+.Max(x => x.Value)
+.Min(x => x.Value)
+
+// Skip and Take (pagination)
+.Skip(10).Take(5)
+
+// Distinct
+.Distinct()
+
+// Any and All
+.Any(x => x.Status == "Active")
+.All(x => x.Status == "Active")
+```
+
+### Controller Action Decorators
+
+```csharp
+[HttpGet]                           // GET request
+[HttpPost]                          // POST request
+[HttpPut]                           // PUT request
+[HttpDelete]                        // DELETE request
+[Route("api/v1/[controller]")]     // Route prefix
+[Authorize]                         // Requires authentication
+[Authorize(Roles = "Admin")]        // Requires specific role
+[AllowAnonymous]                    // No authentication needed
+[FromBody]                          // Bind from request body
+[FromQuery]                         // Bind from query string
+[FromRoute]                         // Bind from URL route
+[FromHeader]                        // Bind from header
+[Range(1, 100)]                     // Validation
+[Required]                          // Field required
+[StringLength(50)]                  // String length validation
+[EmailAddress]                      // Email format validation
+```
+
+### Database Context Operations
+
+```csharp
+// Create
+await repository.CreateAsync(entity);
+
+// Read
+await repository.GetByIdAsync(id);
+await repository.FindAll().ToListAsync();
+await repository.FindByCondition(x => x.Id == id).FirstOrDefaultAsync();
+
+// Update
+repository.Update(entity);
+
+// Delete
+repository.Delete(entity);
+
+// Save all changes
+await repository.SaveAsync();
+
+// Execute raw SQL
+await context.Database.ExecuteSqlRawAsync("DELETE FROM table WHERE ...");
+```
+
+---
+
+This quick reference guide covers the most common tasks and patterns you'll encounter while working with the FoodEase API.
+

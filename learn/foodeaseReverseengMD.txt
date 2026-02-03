@@ -1,0 +1,1432 @@
+
+# FoodEase API - Complete Reverse Engineering Guide
+
+## 📋 Table of Contents
+1. [Overview](#overview)
+2. [Architecture](#architecture)
+3. [Project Structure](#project-structure)
+4. [Technology Stack](#technology-stack)
+5. [Key Components](#key-components)
+6. [How It Works](#how-it-works)
+7. [Data Flow](#data-flow)
+8. [Database Models](#database-models)
+9. [API Endpoints](#api-endpoints)
+10. [Authentication & Authorization](#authentication--authorization)
+11. [Contribution Guide](#contribution-guide)
+12. [Development Workflow](#development-workflow)
+
+---
+
+## Overview
+
+**FoodEase** is a comprehensive food service management API built with **C# (.NET 6.0)** and follows a **layered architecture** pattern. It's a restaurant management system that handles orders, inventory, payments, loyalty programs, and more.
+
+### What This API Does
+- **Restaurant Management**: Multi-restaurant support with settings and configurations
+- **Order Management**: Complete order lifecycle (creation, payment, delivery, refunds)
+- **Inventory Management**: Stock tracking, transfers, purchases, and recipes
+- **Payment Processing**: Integration with multiple payment gateways (Flutterwave, PayStack, Wema Bank, Nomba)
+- **Loyalty Programs**: Customer loyalty and rewards management
+- **Reporting**: Comprehensive reports (food costs, revenue, sales)
+- **Notifications**: Email, WhatsApp, and SMS notifications
+- **Background Jobs**: Hangfire for scheduled tasks and background processing
+
+---
+
+## Architecture
+
+### 🏗️ Layered Architecture Pattern
+
+```
+┌─────────────────────────────────────────────────────────┐
+│         API Layer (FoodEase.Presentation)              │
+│  Controllers → HTTP Requests & Responses               │
+└─────────────────────────────────────────────────────────┘
+                          ↓
+┌─────────────────────────────────────────────────────────┐
+│         Service Layer (Service + Service.Contracts)     │
+│  Business Logic → Data Processing & Validation         │
+└─────────────────────────────────────────────────────────┘
+                          ↓
+┌─────────────────────────────────────────────────────────┐
+│    Repository Layer (Repository + Repository.Contracts)│
+│  Data Access → Database Operations                     │
+└─────────────────────────────────────────────────────────┘
+                          ↓
+┌─────────────────────────────────────────────────────────┐
+│         Database Layer (PostgreSQL)                     │
+│  Persistent Storage                                    │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Why This Architecture?**
+- **Separation of Concerns**: Each layer has a specific responsibility
+- **Maintainability**: Easy to locate and fix bugs
+- **Testability**: Each layer can be tested independently
+- **Scalability**: New features can be added without affecting existing code
+- **Reusability**: Services can be reused across different controllers
+
+---
+
+## Project Structure
+
+```
+food1/
+├── Contracts/                      # Interface contracts for repositories
+│   ├── IAdminRepository.cs
+│   ├── IOrderRepository.cs
+│   └── ... (60+ repository interfaces)
+│
+├── Entities/                       # Data models and DTOs
+│   ├── DatabaseModels/             # Database entities (maps to DB tables)
+│   │   ├── Restaurant.cs
+│   │   ├── Order.cs
+│   │   ├── Item.cs
+│   │   └── ... (100+ entities)
+│   ├── DataTransferObjects/        # DTOs for API requests/responses
+│   │   └── ... (various request/response models)
+│   ├── NonDbModels/                # Non-database models (settings, configs)
+│   ├── ViewModel/                  # View models for UI
+│   ├── Utilities/                  # Helper classes and enums
+│   └── Consts/                     # Constants
+│
+├── Repository/                     # Data access layer
+│   ├── RepositoryManager.cs        # Facade managing all repositories
+│   ├── RepositoryContext.cs        # EF Core DbContext
+│   ├── RepositoryBase.cs           # Base class for all repositories
+│   └── ModelRepositories/          # Specific repository implementations
+│       ├── OrderRepository.cs
+│       ├── ItemRepository.cs
+│       └── ... (60+ repositories)
+│
+├── Service/                        # Business logic layer
+│   ├── ServiceManager.cs           # Facade managing all services
+│   ├── OrderService.cs             # Order business logic
+│   ├── ItemService.cs              # Item business logic
+│   ├── PaymentService.cs           # Payment processing
+│   ├── NotificationService.cs      # Notification handling
+│   ├── Automapper/                 # AutoMapper profiles
+│   ├── FoodEase.Presentation/      # Nested presentation layer
+│   └── ... (50+ services)
+│
+├── Service.Contracts/              # Service interfaces
+│   ├── IServiceManager.cs
+│   ├── IOrderService.cs
+│   └── ... (service interfaces)
+│
+├── FoodEase.Presentation/          # API Controller layer
+│   ├── Controllers/                # HTTP endpoints
+│   │   ├── OrderController.cs      # /api/v1/order endpoints
+│   │   ├── ItemController.cs       # /api/v1/item endpoints
+│   │   ├── RestaurantController.cs # /api/v1/restaurant endpoints
+│   │   └── ... (40+ controllers)
+│   ├── ApiResponseModel.cs         # Standard response wrapper
+│   └── AssemblyReference.cs        # Assembly references
+│
+├── foodapi/                        # Main API project (entry point)
+│   ├── program.cs                  # Application startup configuration
+│   ├── Extensions/                 # Dependency injection extensions
+│   │   ├── ServiceExtensions.cs    # Service registration
+│   │   ├── Authentication.cs       # Auth configuration (JWT)
+│   │   ├── Authorization.cs        # Authorization policies
+│   │   ├── ConfigureSwaggerGen.cs  # Swagger/OpenAPI config
+│   │   └── ...
+│   ├── ContextFactory/             # DbContext factory for migrations
+│   ├── Migrations/                 # EF Core database migrations
+│   ├── Logs/                       # Application logs
+│   └── wwwroot/                    # Static files
+│
+├── LoggingService/                 # Logging utilities
+│   ├── LoggerManager.cs
+│   └── ILoggerManager.cs
+│
+├── EmailViews/                     # Email templates
+│   └── ... (HTML email templates)
+│
+├── food1.sln                       # Solution file
+└── index.html                      # Frontend entry point
+```
+
+---
+
+## Technology Stack
+
+### Backend Framework
+- **Runtime**: .NET 6.0
+- **Language**: C#
+- **API Framework**: ASP.NET Core
+- **ORM**: Entity Framework Core 6.0
+- **Database**: PostgreSQL
+
+### Key Libraries & Services
+
+| Library | Purpose | Version |
+|---------|---------|---------|
+| **AutoMapper** | Object mapping | 12.0.1 |
+| **Hangfire** | Background job processing | 1.8.14 |
+| **Serilog** | Structured logging | Latest |
+| **JWT Bearer** | Authentication | Built-in |
+| **Swagger/OpenAPI** | API Documentation | Built-in |
+| **Entity Framework Core** | Database ORM | 6.0 |
+
+### External Integrations
+1. **Payment Gateways**:
+   - Flutterwave
+   - PayStack
+   - Wema Bank
+   - Nomba
+   - Embedly
+
+2. **Communication**:
+   - Email (SMTP)
+   - WhatsApp Business API
+   - SMS (implied)
+
+3. **Logging & Monitoring**:
+   - Seq (Centralized logging)
+   - Kafka (Event streaming)
+   - Firebase Admin SDK
+
+4. **Job Scheduling**:
+   - Hangfire with PostgreSQL storage
+
+---
+
+## Key Components
+
+### 1. **RepositoryContext** (EF Core DbContext)
+Located in: `Repository/RepositoryContext.cs`
+
+This is the bridge between your C# objects and the PostgreSQL database. It defines all the database tables as DbSets.
+
+**What it does:**
+- Manages database connections
+- Defines all entity mappings
+- Configures relationships between tables
+- Handles migrations
+
+**Example usage in repository:**
+```csharp
+public class OrderRepository : RepositoryBase<Order>
+{
+    public OrderRepository(RepositoryContext context) : base(context) { }
+    
+    public async Task<IEnumerable<Order>> GetAllOrders()
+    {
+        return await FindAll().ToListAsync();
+    }
+}
+```
+
+### 2. **ServiceManager** (Facade Pattern)
+Located in: `Service/ServiceManager.cs`
+
+Uses the **Facade Pattern** to simplify access to multiple services.
+
+**What it does:**
+- Provides single entry point to all services
+- Uses Lazy<T> for lazy initialization (services loaded on first use)
+- Reduces memory footprint by only loading needed services
+
+**Usage in controllers:**
+```csharp
+public class OrderController : ControllerBase
+{
+    private readonly IServiceManager _service;
+    
+    public OrderController(IServiceManager service)
+    {
+        _service = service; // Single dependency injection
+    }
+    
+    // Access any service through _service
+    await _service.OrderService.GetAllOrders();
+    await _service.ItemService.GetItemById(id);
+    await _service.PaymentService.ProcessPayment(data);
+}
+```
+
+### 3. **RepositoryManager** (Repository Facade)
+Located in: `Repository/RepositoryManager.cs`
+
+Similar to ServiceManager but for data access layer.
+
+**What it does:**
+- Provides access to all repositories
+- Manages DbContext
+- Handles database transactions
+
+### 4. **AutoMapper Profiles**
+Located in: `Service/Automapper/`
+
+Configures object mapping from Entities → DTOs and vice versa.
+
+**What it does:**
+- Converts database entities to API DTOs
+- Converts API requests to database entities
+- Handles complex nested mappings
+
+**Example:**
+```csharp
+// Request DTO → Entity
+public class CreateOrderDto { ... }
+
+// Entity → Response DTO
+public class OrderDto { ... }
+
+// Mapping configuration
+CreateMap<CreateOrderDto, Order>();
+CreateMap<Order, OrderDto>();
+```
+
+### 5. **Controllers**
+Located in: `FoodEase.Presentation/Controllers/`
+
+HTTP endpoints handling incoming requests.
+
+**Controller Structure:**
+```csharp
+[Route("api/v1/[controller]")]
+[ApiController]
+[Authorize]  // JWT authentication required
+public class OrderController : ControllerBase
+{
+    private readonly IServiceManager _service;
+    
+    [HttpGet("list-all")]
+    public async Task<IActionResult> GetOrders() { ... }
+    
+    [HttpPost("create")]
+    public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto dto) { ... }
+    
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateOrder(string id, [FromBody] UpdateOrderDto dto) { ... }
+    
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteOrder(string id) { ... }
+}
+```
+
+### 6. **Response Model**
+Located in: `FoodEase.Presentation/ApiResponseModel.cs`
+
+Standardized API response format.
+
+**Structure:**
+```csharp
+public class GlobalResponse<T>
+{
+    public T Data { get; set; }
+    public List<ErrorItemModel> Errors { get; set; }
+    public bool Success { get; set; }
+}
+
+public class ErrorItemModel
+{
+    public string Key { get; set; }
+    public List<string> ErrorMessages { get; set; }
+}
+```
+
+**Usage:**
+```csharp
+return Ok(ResponseBuilder.BuildResponse(null, data)); // Success
+return BadRequest(ResponseBuilder.BuildResponse(ModelState, null)); // Error
+```
+
+---
+
+## How It Works
+
+### Request Lifecycle
+
+```
+1. HTTP Request arrives at Controller
+   ↓
+2. Controller receives and validates request
+   ↓
+3. Controller calls appropriate Service method
+   ↓
+4. Service:
+   - Applies business logic
+   - Validates data
+   - Calls Repository for data access
+   ↓
+5. Repository:
+   - Queries database using EF Core
+   - Returns data
+   ↓
+6. Service processes returned data (mapping, filtering, etc.)
+   ↓
+7. Controller builds response
+   ↓
+8. HTTP Response sent to client
+```
+
+### Example: Creating an Order
+
+```
+Step 1: Request arrives
+POST /api/v1/order/create
+{
+  "restaurantId": "rest-123",
+  "revenueCenterId": "rc-456",
+  "items": [...]
+}
+
+Step 2: OrderController.CreateOrder() receives request
+- Validates CreateOrderDto
+- Calls _service.OrderService.CreateOrder(dto)
+
+Step 3: OrderService.CreateOrder() processes
+- Validates business rules
+- Maps DTO to Order entity
+- Calls _repository.OrderRepository.CreateAsync(order)
+
+Step 4: OrderRepository.CreateAsync()
+- Adds order to DbContext
+- Calls SaveChangesAsync()
+- Returns created order
+
+Step 5: Service builds response
+- Maps entity to response DTO
+- Returns to controller
+
+Step 6: Controller returns response
+{
+  "success": true,
+  "data": {
+    "orderId": "ord-789",
+    "status": "created",
+    ...
+  },
+  "errors": []
+}
+```
+
+---
+
+## Data Flow
+
+### Entity Relationships
+
+The API manages complex relationships:
+
+```
+Restaurant
+  ├── RevenueCenters (stores/branches)
+  │   ├── Tables
+  │   ├── Orders
+  │   │   ├── OrderCharges
+  │   │   ├── OrderPaymentChannels
+  │   │   └── Items
+  │   ├── ItemClasses
+  │   │   └── Items
+  │   └── Staff
+  │
+  ├── ItemParents
+  │   ├── Items
+  │   │   ├── ItemRecipes (what goes into this item)
+  │   │   ├── ItemPrices
+  │   │   ├── ItemSources (where to buy)
+  │   │   └── ItemLocations (where stored)
+  │   │
+  │   └── ItemPackages (bundle items)
+  │
+  ├── Vendors (suppliers)
+  │   ├── PurchaseOrders
+  │   │   ├── PurchaseReceipts
+  │   │   └── ReceiptItems
+  │   └── ItemVendors
+  │
+  └── PriceLists/PriceBooks
+      └── Items with prices
+```
+
+### Database Access Pattern
+
+```
+DbContext (RepositoryContext)
+  │
+  ├── DbSet<Order>
+  ├── DbSet<Item>
+  ├── DbSet<Restaurant>
+  ├── ... (other DbSets)
+  │
+  └── EF Core Queries
+      ↓
+      Database Tables
+```
+
+---
+
+## Database Models
+
+### Key Entities
+
+#### 1. **Restaurant**
+Base entity for multi-tenant support
+```csharp
+public class Restaurant : DbEntity
+{
+    public string Name { get; set; }
+    public string Code { get; set; }
+    public ICollection<RevenueCenter> RevenueCenters { get; set; }
+    public ICollection<Staff> Staff { get; set; }
+    // ... more properties
+}
+```
+
+#### 2. **Order**
+Main order entity
+```csharp
+public class Order : DbEntity
+{
+    public string OrderNumber { get; set; }
+    public string RestaurantId { get; set; }
+    public string RevenueCenterId { get; set; }
+    public string CustomerId { get; set; }
+    public DateTime OrderDate { get; set; }
+    public decimal TotalAmount { get; set; }
+    public OrderStatus Status { get; set; }
+    public ICollection<ItemOrder> Items { get; set; }
+    public ICollection<OrderPaymentChannel> PaymentChannels { get; set; }
+}
+```
+
+#### 3. **Item**
+Product/menu item
+```csharp
+public class Item : DbEntity
+{
+    public string ItemCode { get; set; }
+    public string ItemName { get; set; }
+    public string ItemClassId { get; set; }
+    public decimal UnitPrice { get; set; }
+    public ICollection<ItemRecipe> Recipes { get; set; }
+    public ICollection<ItemOrder> Orders { get; set; }
+}
+```
+
+#### 4. **ItemRecipe**
+Defines what ingredients go into an item
+```csharp
+public class ItemRecipe : DbEntity
+{
+    public string ItemId { get; set; }
+    public string RecipeItemId { get; set; }
+    public decimal Quantity { get; set; }
+    public string UnitOfMeasure { get; set; }
+}
+```
+
+#### 5. **StockTransfer & StockTake**
+Inventory management
+```csharp
+public class StockTransfer : DbEntity
+{
+    public string FromLocationId { get; set; }
+    public string ToLocationId { get; set; }
+    public DateTime TransferDate { get; set; }
+    public ICollection<StockTransferReceipt> Receipts { get; set; }
+}
+
+public class StockTake : DbEntity
+{
+    public DateTime CountDate { get; set; }
+    public string RevenueCenterId { get; set; }
+    public ICollection<ItemStockTake> Items { get; set; }
+}
+```
+
+#### 6. **PurchaseOrder**
+Supplier orders
+```csharp
+public class PurchaseOrder : DbEntity
+{
+    public string VendorId { get; set; }
+    public DateTime OrderDate { get; set; }
+    public decimal TotalCost { get; set; }
+    public ICollection<PurchaseReceipt> Receipts { get; set; }
+}
+```
+
+---
+
+## API Endpoints
+
+### Endpoint Naming Convention
+```
+GET    /api/v1/{resource}              - List all
+GET    /api/v1/{resource}/{id}         - Get by ID
+GET    /api/v1/{resource}/filter       - Filter/Search
+POST   /api/v1/{resource}              - Create
+PUT    /api/v1/{resource}/{id}         - Update
+DELETE /api/v1/{resource}/{id}         - Delete
+POST   /api/v1/{resource}/{action}     - Custom action
+```
+
+### Major Endpoint Groups
+
+#### 1. **Orders** (`/api/v1/order`)
+- `GET /list-all` - All orders
+- `POST /create` - Create order
+- `GET /online-orders` - Orders from online channel
+- `PUT /{id}` - Update order
+- `DELETE /{id}` - Cancel order
+- `POST /{id}/payment` - Process payment
+- `GET /unpaid` - Unpaid orders
+- `GET /ready-orders` - Completed orders
+
+#### 2. **Items** (`/api/v1/item`)
+- `GET /list-all` - All items
+- `POST /create` - Create item
+- `GET /{id}` - Get item details
+- `PUT /{id}` - Update item
+- `DELETE /{id}` - Remove item
+- `GET /{id}/recipe` - Get recipe/composition
+- `PUT /{id}/recipe` - Update recipe
+
+#### 3. **Restaurant** (`/api/v1/restaurant`)
+- `GET /list-all` - All restaurants
+- `POST /create` - Create restaurant
+- `GET /{id}` - Get details
+- `PUT /{id}` - Update settings
+
+#### 4. **Inventory** (`/api/v1/stock-*`)
+- `POST /stock-transfer` - Transfer stock
+- `POST /stock-take` - Count inventory
+- `GET /stock-levels` - Current stock levels
+- `POST /purchase-order` - Create PO
+
+#### 5. **Payment** (`/api/v1/payment`)
+- `POST /process` - Process payment
+- `GET /channels` - Available payment methods
+- `POST /refund` - Issue refund
+
+#### 6. **Reporting** (`/api/v1/report`)
+- `GET /sales` - Sales reports
+- `GET /food-cost` - Food cost analysis
+- `GET /revenue` - Revenue reports
+
+---
+
+## Authentication & Authorization
+
+### How JWT Authentication Works
+
+```
+1. User Credentials
+   ↓
+2. Login Endpoint (/auth/login)
+   - Validates credentials
+   - Generates JWT token
+   - Returns token to client
+   ↓
+3. Client stores JWT token
+   ↓
+4. Every API request includes JWT in header
+   Authorization: Bearer {token}
+   ↓
+5. [Authorize] attribute validates token
+   - Checks signature
+   - Verifies expiration
+   - Validates claims
+   ↓
+6. Request proceeds if valid, 401 if invalid
+```
+
+### Configuration
+Located in: `foodapi/Extensions/Authentication.cs`
+
+```csharp
+// JWT settings from appsettings.json
+var jwt = configuration.GetSection("JWT").Get<JWT>();
+
+// Validation parameters
+- SigningKey: Secret key for signing
+- ValidateAudience: false (accept any audience)
+- ValidateIssuer: false (accept any issuer)
+- ValidateLifetime: true (check expiration)
+```
+
+### Authorization Policies
+Located in: `foodapi/Extensions/Authorization.cs`
+
+Define who can access what endpoints:
+```csharp
+// Example: Role-based access
+[Authorize(Roles = "Admin")]
+public async Task<IActionResult> AdminOnlyEndpoint() { ... }
+
+// Example: Custom policy
+[Authorize(Policy = "CanManageRestaurant")]
+public async Task<IActionResult> ManageRestaurant() { ... }
+```
+
+---
+
+## Contribution Guide
+
+### Before Contributing
+
+1. **Understand the Architecture**
+   - Study the layered structure
+   - Understand Repository pattern
+   - Learn Entity Framework Core basics
+
+2. **Set Up Development Environment**
+   ```bash
+   # Clone the repository
+   git clone https://github.com/superkingsely/food1.git
+   cd food1
+
+   # Install dependencies
+   dotnet restore
+
+   # Build the solution
+   dotnet build
+
+   # Run migrations
+   dotnet ef database update --project foodapi
+   ```
+
+3. **Read the Code Style**
+   - PascalCase for class and method names
+   - camelCase for local variables
+   - Async/await for all I/O operations
+   - Use dependency injection
+
+### How to Contribute
+
+#### Step 1: Choose What to Work On
+
+**Types of Contributions:**
+- **Bug Fix**: Find issues, fix them
+- **Feature**: Add new functionality
+- **Refactoring**: Improve code quality
+- **Documentation**: Improve guides and comments
+
+#### Step 2: Create a Feature Branch
+
+```bash
+# Create branch following naming convention
+git checkout -b feature/feature-name
+# or
+git checkout -b bugfix/bug-name
+# or
+git checkout -b refactor/refactor-name
+
+# Example
+git checkout -b feature/add-loyalty-points-calculation
+```
+
+#### Step 3: Implement Your Changes
+
+**Example: Adding a New Feature**
+
+Let's say you want to add a "Customer Feedback" feature:
+
+**3a. Create Entity** (Entities/DatabaseModels/Feedback.cs)
+```csharp
+public class Feedback : DbEntity
+{
+    public string CustomerId { get; set; }
+    public string OrderId { get; set; }
+    public int Rating { get; set; }
+    public string Comments { get; set; }
+    public DateTime CreatedAt { get; set; }
+    
+    public virtual Customer Customer { get; set; }
+    public virtual Order Order { get; set; }
+}
+```
+
+**3b. Create Repository Interface** (Contracts/IFeedbackRepository.cs)
+```csharp
+public interface IFeedbackRepository : IRepositoryBase<Feedback>
+{
+    Task<IEnumerable<Feedback>> GetCustomerFeedback(string customerId);
+    Task<IEnumerable<Feedback>> GetOrderFeedback(string orderId);
+    Task<decimal> GetAverageRating(string restaurantId);
+}
+```
+
+**3c. Implement Repository** (Repository/ModelRepositories/FeedbackRepository.cs)
+```csharp
+public class FeedbackRepository : RepositoryBase<Feedback>, IFeedbackRepository
+{
+    public FeedbackRepository(RepositoryContext context) : base(context) { }
+    
+    public async Task<IEnumerable<Feedback>> GetCustomerFeedback(string customerId)
+    {
+        return await FindByCondition(f => f.CustomerId == customerId)
+            .OrderByDescending(f => f.CreatedAt)
+            .ToListAsync();
+    }
+    
+    public async Task<decimal> GetAverageRating(string restaurantId)
+    {
+        return await FindAll()
+            .Join(_context.Orders, f => f.OrderId, o => o.Id, (f, o) => new { f, o })
+            .Where(x => x.o.RestaurantId == restaurantId)
+            .AverageAsync(x => x.f.Rating);
+    }
+}
+```
+
+**3d. Create Service Interface** (Service.Contracts/IFeedbackService.cs)
+```csharp
+public interface IFeedbackService
+{
+    Task<Result<FeedbackDto>> AddFeedback(CreateFeedbackDto dto);
+    Task<Result<IEnumerable<FeedbackDto>>> GetCustomerFeedback(string customerId);
+    Task<Result<decimal>> GetAverageRating(string restaurantId);
+}
+```
+
+**3e. Implement Service** (Service/FeedbackService.cs)
+```csharp
+public class FeedbackService : IFeedbackService
+{
+    private readonly IRepositoryManager _repository;
+    private readonly IMapper _mapper;
+    
+    public FeedbackService(IRepositoryManager repository, IMapper mapper)
+    {
+        _repository = repository;
+        _mapper = mapper;
+    }
+    
+    public async Task<Result<FeedbackDto>> AddFeedback(CreateFeedbackDto dto)
+    {
+        // Validate input
+        if (dto.Rating < 1 || dto.Rating > 5)
+            return Result<FeedbackDto>.Failure("Rating must be 1-5");
+        
+        // Map DTO to entity
+        var feedback = _mapper.Map<Feedback>(dto);
+        
+        // Create in database
+        await _repository.FeedbackRepository.CreateAsync(feedback);
+        await _repository.SaveAsync();
+        
+        // Map back to DTO and return
+        var feedbackDto = _mapper.Map<FeedbackDto>(feedback);
+        return Result<FeedbackDto>.Success(feedbackDto);
+    }
+    
+    public async Task<Result<IEnumerable<FeedbackDto>>> GetCustomerFeedback(string customerId)
+    {
+        var feedback = await _repository.FeedbackRepository.GetCustomerFeedback(customerId);
+        var feedbackDtos = _mapper.Map<IEnumerable<FeedbackDto>>(feedback);
+        return Result<IEnumerable<FeedbackDto>>.Success(feedbackDtos);
+    }
+}
+```
+
+**3f. Create Controller** (FoodEase.Presentation/Controllers/FeedbackController.cs)
+```csharp
+[Route("api/v1/[controller]")]
+[ApiController]
+[Authorize]
+public class FeedbackController : ControllerBase
+{
+    private readonly IServiceManager _service;
+    
+    public FeedbackController(IServiceManager service)
+    {
+        _service = service;
+    }
+    
+    [HttpPost("add")]
+    public async Task<IActionResult> AddFeedback([FromBody] CreateFeedbackDto dto)
+    {
+        var result = await _service.FeedbackService.AddFeedback(dto);
+        
+        if (!result.IsSuccess)
+            return BadRequest(ResponseBuilder.BuildResponse(null, result));
+        
+        return Ok(ResponseBuilder.BuildResponse(null, result.Data));
+    }
+    
+    [HttpGet("customer/{customerId}")]
+    public async Task<IActionResult> GetCustomerFeedback(string customerId)
+    {
+        var result = await _service.FeedbackService.GetCustomerFeedback(customerId);
+        
+        if (!result.IsSuccess)
+            return BadRequest(ResponseBuilder.BuildResponse(null, result));
+        
+        return Ok(ResponseBuilder.BuildResponse(null, result.Data));
+    }
+    
+    [HttpGet("average-rating")]
+    public async Task<IActionResult> GetAverageRating(string restaurantId)
+    {
+        var result = await _service.FeedbackService.GetAverageRating(restaurantId);
+        
+        if (!result.IsSuccess)
+            return BadRequest(ResponseBuilder.BuildResponse(null, result));
+        
+        return Ok(ResponseBuilder.BuildResponse(null, result.Data));
+    }
+}
+```
+
+**3g. Update ServiceManager** (Service/ServiceManager.cs)
+```csharp
+// Add to ServiceManager class
+private readonly Lazy<IFeedbackService> _feedbackService;
+
+public IFeedbackService FeedbackService => _feedbackService.Value;
+
+// In constructor
+_feedbackService = new Lazy<IFeedbackService>(() => 
+    new FeedbackService(_repositoryManager, _mapper));
+```
+
+**3h. Update RepositoryManager** (Repository/RepositoryManager.cs)
+```csharp
+private readonly Lazy<IFeedbackRepository> _feedbackRepository;
+
+public IFeedbackRepository FeedbackRepository => _feedbackRepository.Value;
+
+// In constructor
+_feedbackRepository = new Lazy<IFeedbackRepository>(() => 
+    new FeedbackRepository(_repositoryContext));
+```
+
+**3i. Create AutoMapper Profile**
+```csharp
+// In Service/Automapper/FeedbackProfile.cs
+public class FeedbackProfile : Profile
+{
+    public FeedbackProfile()
+    {
+        CreateMap<CreateFeedbackDto, Feedback>();
+        CreateMap<Feedback, FeedbackDto>();
+    }
+}
+```
+
+**3j. Create Database Migration**
+```bash
+dotnet ef migrations add AddFeedbackTable --project foodapi
+dotnet ef database update --project foodapi
+```
+
+**3k. Create DTO Classes** (Entities/DataTransferObjects/)
+```csharp
+public class CreateFeedbackDto
+{
+    public string CustomerId { get; set; }
+    public string OrderId { get; set; }
+    public int Rating { get; set; }
+    public string Comments { get; set; }
+}
+
+public class FeedbackDto
+{
+    public string Id { get; set; }
+    public string CustomerId { get; set; }
+    public int Rating { get; set; }
+    public string Comments { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+```
+
+#### Step 4: Follow Code Standards
+
+**Async/Await Pattern**
+```csharp
+// ✅ GOOD
+public async Task<Order> GetOrderAsync(string id)
+{
+    return await _repository.OrderRepository.GetByIdAsync(id);
+}
+
+// ❌ BAD
+public Order GetOrder(string id)
+{
+    return _repository.OrderRepository.GetById(id).Result; // Blocks!
+}
+```
+
+**Dependency Injection**
+```csharp
+// ✅ GOOD - Inject dependencies
+public class OrderService
+{
+    private readonly IRepositoryManager _repository;
+    
+    public OrderService(IRepositoryManager repository)
+    {
+        _repository = repository;
+    }
+}
+
+// ❌ BAD - Creating instances
+public class OrderService
+{
+    private RepositoryManager _repository = new RepositoryManager();
+}
+```
+
+**Error Handling**
+```csharp
+// ✅ GOOD
+if (string.IsNullOrEmpty(dto.OrderId))
+    return BadRequest(ResponseBuilder.BuildResponse(null, "Order ID is required"));
+
+// ❌ BAD
+var order = _service.GetOrder(dto.OrderId); // Could throw exception
+```
+
+**LINQ Usage**
+```csharp
+// ✅ GOOD - Use async LINQ
+var orders = await _repository.FindByCondition(o => o.Status == "Pending")
+    .OrderByDescending(o => o.CreatedDate)
+    .ToListAsync();
+
+// ❌ BAD - Loading all data then filtering
+var allOrders = _repository.FindAll().ToList();
+var orders = allOrders.Where(o => o.Status == "Pending").ToList();
+```
+
+#### Step 5: Write Tests
+
+```csharp
+// Example unit test
+[TestFixture]
+public class FeedbackServiceTests
+{
+    private IFeedbackService _service;
+    private Mock<IRepositoryManager> _mockRepository;
+    
+    [SetUp]
+    public void Setup()
+    {
+        _mockRepository = new Mock<IRepositoryManager>();
+        _service = new FeedbackService(_mockRepository.Object, new MapperConfiguration(cfg => 
+            cfg.AddProfile<FeedbackProfile>()).CreateMapper());
+    }
+    
+    [Test]
+    public async Task AddFeedback_WithValidData_ReturnsSuccess()
+    {
+        var dto = new CreateFeedbackDto { Rating = 5, CustomerId = "cust-1", OrderId = "ord-1" };
+        
+        var result = await _service.AddFeedback(dto);
+        
+        Assert.IsTrue(result.IsSuccess);
+        Assert.IsNotNull(result.Data);
+    }
+}
+```
+
+#### Step 6: Commit and Push
+
+```bash
+# Stage changes
+git add .
+
+# Commit with descriptive message
+git commit -m "feat: Add customer feedback feature
+
+- Add Feedback entity and database model
+- Create FeedbackService with CRUD operations
+- Add FeedbackController with REST endpoints
+- Implement AutoMapper profiles
+- Add database migration
+
+Closes #123"
+
+# Push to remote
+git push origin feature/add-customer-feedback
+```
+
+#### Step 7: Create Pull Request
+
+Go to GitHub and create a PR with:
+- **Title**: Clear, descriptive title
+- **Description**: 
+  - What was changed
+  - Why it was changed
+  - How to test it
+  - Related issues/tickets
+
+Example PR description:
+```markdown
+## Description
+Adds customer feedback system to track ratings and comments for completed orders.
+
+## Changes
+- Added Feedback database model
+- Created FeedbackService with rating calculations
+- Added feedback endpoints (GET, POST)
+- Added unit tests
+
+## How to Test
+1. Create an order
+2. POST /api/v1/feedback/add with order ID and rating
+3. GET /api/v1/feedback/customer/{customerId} to view feedback
+
+## Related Issues
+Closes #123
+```
+
+---
+
+## Development Workflow
+
+### Local Development Setup
+
+**1. Prerequisites**
+```bash
+# Install .NET 6 SDK
+# https://dotnet.microsoft.com/download
+
+# Install PostgreSQL
+# https://www.postgresql.org/download/
+
+# Clone the repository
+git clone https://github.com/superkingsely/food1.git
+cd food1
+```
+
+**2. Configuration**
+Create `appsettings.Development.json` in `foodapi/` folder:
+```json
+{
+  "ConnectionStrings": {
+    "postgresConnection": "Host=localhost;Port=5432;Database=foodease;Username=postgres;Password=your_password"
+  },
+  "JWT": {
+    "SigningKey": "your-secret-key-minimum-32-characters-long",
+    "ExpirationMinutes": 60
+  },
+  "Email": {
+    "SmtpServer": "smtp.gmail.com",
+    "SmtpPort": 587,
+    "SenderEmail": "your-email@gmail.com",
+    "SenderPassword": "your-app-password"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning"
+    }
+  }
+}
+```
+
+**3. Build and Run**
+```bash
+# Restore packages
+dotnet restore
+
+# Build solution
+dotnet build
+
+# Apply migrations
+cd foodapi
+dotnet ef database update
+
+# Run API
+dotnet run
+
+# API available at: https://localhost:5001
+# Swagger docs: https://localhost:5001/swagger
+```
+
+### Debugging Tips
+
+**1. Enable Debug Logging**
+```csharp
+// In program.cs
+builder.Services.AddLogging(config =>
+{
+    config.SetMinimumLevel(LogLevel.Debug);
+    config.AddConsole();
+});
+```
+
+**2. Use Breakpoints**
+- Visual Studio: Click line number to set breakpoint
+- VS Code: Use Debug tab
+
+**3. Check Database**
+```bash
+# Connect to PostgreSQL
+psql -U postgres -d foodease
+
+# View tables
+\dt
+
+# Query data
+SELECT * FROM "Orders" LIMIT 5;
+```
+
+**4. View Logs**
+```bash
+# Serilog writes to Seq server
+# https://seq-log.food-ease.io
+```
+
+### Common Development Tasks
+
+**Adding a New Field to Entity**
+```bash
+# 1. Update entity class
+# 2. Create migration
+dotnet ef migrations add AddNewFieldToOrder --project foodapi
+
+# 3. Review migration (foodapi/Migrations/)
+# 4. Apply to database
+dotnet ef database update
+
+# 5. Update related DTOs
+# 6. Update AutoMapper profiles
+# 7. Update service logic if needed
+```
+
+**Creating a New Endpoint**
+1. Create/update DTO classes
+2. Create service interface method
+3. Implement service method
+4. Add controller action
+5. Create migration if entity changed
+6. Test endpoint with Swagger
+7. Commit and push
+
+**Running Tests**
+```bash
+# Run all tests
+dotnet test
+
+# Run specific test
+dotnet test --filter "TestClassName"
+
+# With coverage
+dotnet test /p:CollectCoverage=true
+```
+
+---
+
+## Key Code Patterns Used
+
+### Pattern 1: Repository Pattern
+Abstracts database access.
+
+```csharp
+// Interface
+public interface IOrderRepository : IRepositoryBase<Order>
+{
+    Task<Order> GetByIdAsync(string id);
+}
+
+// Implementation
+public class OrderRepository : RepositoryBase<Order>, IOrderRepository
+{
+    public async Task<Order> GetByIdAsync(string id)
+    {
+        return await FindByCondition(o => o.Id == id).FirstOrDefaultAsync();
+    }
+}
+
+// Usage in service
+var order = await _repository.OrderRepository.GetByIdAsync(id);
+```
+
+### Pattern 2: Dependency Injection
+Constructor injection for loose coupling.
+
+```csharp
+public class OrderService : IOrderService
+{
+    private readonly IRepositoryManager _repository;
+    private readonly IMapper _mapper;
+    
+    // Dependencies injected through constructor
+    public OrderService(IRepositoryManager repository, IMapper mapper)
+    {
+        _repository = repository;
+        _mapper = mapper;
+    }
+}
+```
+
+### Pattern 3: Lazy Loading
+Load services only when needed.
+
+```csharp
+// In ServiceManager
+private readonly Lazy<IOrderService> _orderService;
+
+public IOrderService OrderService => _orderService.Value;
+
+// Service created only on first access
+_service.OrderService.GetAllOrders(); // Created here
+```
+
+### Pattern 4: DTO Pattern
+Separate API contracts from database entities.
+
+```csharp
+// Database entity
+public class Order : DbEntity
+{
+    // ... 20+ properties
+}
+
+// API request DTO
+public class CreateOrderDto
+{
+    public string RestaurantId { get; set; }
+    public List<OrderItemDto> Items { get; set; }
+}
+
+// API response DTO
+public class OrderDto
+{
+    public string Id { get; set; }
+    public string OrderNumber { get; set; }
+    // Only necessary fields
+}
+```
+
+### Pattern 5: Async/Await
+All I/O operations are asynchronous.
+
+```csharp
+public async Task<List<Order>> GetOrdersAsync()
+{
+    return await _repository.OrderRepository
+        .FindAll()
+        .ToListAsync();
+}
+```
+
+---
+
+## Common Issues & Solutions
+
+### Issue: Entity Not Saved to Database
+**Cause**: Forgot to call `SaveAsync()` or `SaveChangesAsync()`
+
+**Solution**:
+```csharp
+// Add item
+await _repository.ItemRepository.CreateAsync(item);
+
+// Don't forget this!
+await _repository.SaveAsync();
+```
+
+### Issue: Circular Reference in Entity Relationships
+**Cause**: Lazy loading of navigation properties causes infinite loops
+
+**Solution**:
+```csharp
+// Use NoTracking for read-only queries
+var orders = await _repository.OrderRepository
+    .FindAll()
+    .AsNoTracking()
+    .ToListAsync();
+
+// Or disable automatic lazy loading
+context.ChangeTracker.LazyLoadingEnabled = false;
+```
+
+### Issue: Slow Database Queries
+**Cause**: N+1 queries or missing indexes
+
+**Solution**:
+```csharp
+// Use .Include() to eager load related data
+var orders = await _repository.OrderRepository
+    .FindAll()
+    .Include(o => o.Items)
+    .Include(o => o.PaymentChannels)
+    .ToListAsync();
+
+// Add database indexes on frequently queried columns
+[Index(nameof(OrderNumber))]
+[Index(nameof(RestaurantId))]
+public class Order : DbEntity { }
+```
+
+---
+
+## Testing the API
+
+### Using Swagger
+1. Run the API
+2. Navigate to `https://localhost:5001/swagger`
+3. Click "Authorize" and paste your JWT token
+4. Test endpoints directly from browser
+
+### Using Postman
+1. Create new collection
+2. Add environment variable for `api_url`
+3. Create requests for each endpoint
+4. Share collection with team
+
+### Example Request
+```
+POST /api/v1/order/create
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+Content-Type: application/json
+
+{
+  "restaurantId": "rest-123",
+  "revenueCenterId": "rc-456",
+  "customerId": "cust-789",
+  "items": [
+    {
+      "itemId": "item-001",
+      "quantity": 2,
+      "unitPrice": 5000
+    }
+  ]
+}
+```
+
+---
+
+## Resources
+
+### Official Documentation
+- [ASP.NET Core Docs](https://docs.microsoft.com/en-us/aspnet/core)
+- [Entity Framework Core](https://docs.microsoft.com/en-us/ef/core)
+- [AutoMapper](https://automapper.org)
+- [Hangfire](https://www.hangfire.io/documentation.html)
+
+### Architecture & Design Patterns
+- [Repository Pattern](https://martinfowler.com/eaaCatalog/repository.html)
+- [Facade Pattern](https://refactoring.guru/design-patterns/facade)
+- [Lazy Initialization](https://refactoring.guru/design-patterns/lazy-initialization)
+- [DTO Pattern](https://martinfowler.com/bliki/POJO.html)
+
+### Best Practices
+- [Microsoft REST API Guidelines](https://github.com/microsoft/api-guidelines)
+- [12 Factor App](https://12factor.net)
+- [SOLID Principles](https://en.wikipedia.org/wiki/SOLID)
+
+---
+
+## Contact & Support
+
+For questions about:
+- **Architecture**: Review `Service/ServiceManager.cs` and `Repository/RepositoryManager.cs`
+- **Database**: Check `Repository/RepositoryContext.cs`
+- **Authentication**: See `foodapi/Extensions/Authentication.cs`
+- **Controllers**: Browse `FoodEase.Presentation/Controllers/`
+
+---
+
+**Document Version**: 1.0
+**Last Updated**: February 2, 2026
+**Framework**: .NET 6.0 | C# | ASP.NET Core

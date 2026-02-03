@@ -1,0 +1,1697 @@
+
+# FoodEase API - Complete Entity Relationship Documentation
+
+## 📊 Table of Contents
+1. [Database Overview](#database-overview)
+2. [Core Entities](#core-entities)
+3. [Complete Entity Relationship Diagram](#complete-entity-relationship-diagram)
+4. [Detailed Entity Relationships](#detailed-entity-relationships)
+5. [Junction Tables (Many-to-Many)](#junction-tables-many-to-many)
+6. [Relationship Summary](#relationship-summary)
+
+---
+
+## Database Overview
+
+The FoodEase API uses a **PostgreSQL** database with **100+ entities** organized into logical domains:
+
+| Domain | Purpose | Key Tables |
+|--------|---------|-----------|
+| **Restaurant Management** | Multi-tenant setup | Restaurant, RevenueCenter, RestaurantSetting |
+| **Menu & Items** | Product catalog | Item, ItemClass, ItemParent, ItemPackage |
+| **Recipes & Composition** | Item recipes | ItemRecipe, RecipeItem, ItemRecipeComponent |
+| **Ordering System** | Order processing | Order, ItemOrder, OrderCharge, OrderPaymentChannel |
+| **Inventory** | Stock management | StockTransfer, StockTake, ItemLocation, StockLog |
+| **Purchasing** | Supplier orders | PurchaseOrder, PurchaseReceipt, Vendor |
+| **Payments** | Financial transactions | OrderPaymentChannel, Transaction, RefundLog |
+| **Users & Staff** | Access control | Staff, BaseUser, UserRole, CustomRole, CustomClaim |
+| **Pricing** | Price management | PriceList, PriceBook, ItemPrice |
+| **Reports & Analytics** | Data analysis | Report, FoodCostReport, ShiftReport |
+| **Communications** | Messaging | WhatsappAccount, Newsletter, CustomChannels |
+| **Additional** | Supporting features | Loyalty, Reservation, Blog, Session |
+
+---
+
+## Core Entities
+
+### 🏢 RESTAURANT DOMAIN
+
+#### Restaurant (Root Entity)
+```
+PK: Id (string)
+Properties:
+  - Code
+  - ContactNumber
+  - Email
+  - BusinessId
+  - KDSEnabled (Kitchen Display System)
+  - TaxExclusive
+  - RestaurantType
+  - CountryCode
+  - PayoutType
+  - PayoutEnabled
+```
+
+**Relationships:**
+- 1:N → RevenueCenter (one restaurant has many revenue centers)
+- 1:N → Staff (one restaurant has many staff)
+- 1:N → Item (one restaurant has many items)
+- 1:N → Vendor (one restaurant has many vendors)
+- 1:N → Order (one restaurant has many orders)
+- 1:N → StockTeams
+- 1:N → BannerImages
+- 1:N → MobileImages
+- 1:N → FeatureItems
+- 1:N → OpeningHours
+- 1:1 → RestaurantSetting
+
+#### RevenueCenter (Store/Branch)
+```
+PK: Id (string)
+FK: RestaurantId
+Properties:
+  - Name
+  - Logo
+  - PhoneNumber
+  - State
+  - Address
+  - PickupAvailable
+  - StockControl
+  - PayoutAccountNumber
+  - PayoutBankCode
+```
+
+**Relationships:**
+- N:1 ← Restaurant
+- 1:N → Table (one revenue center has many tables)
+- 1:N → Order (one revenue center has many orders)
+- 1:N → ItemRevenueCenter (junction table)
+- 1:N → ClassRevenueCenter (junction table)
+- 1:N → TaxRevenueCenter (junction table)
+- 1:N → ChargeRevenueCenter (junction table)
+- 1:N → RevCenterArea (preparation areas)
+- 1:N → DeviceToken
+
+#### RestaurantSetting
+```
+PK: Id (string)
+FK: RestaurantId
+Properties:
+  - MinOrderAmount
+  - DeliveryFee
+  - TaxRate
+  - PaymentMethods
+  - ReceiptFormat
+  - Currency
+```
+
+**Relationships:**
+- 1:1 ← Restaurant
+
+---
+
+### 👥 USER & AUTHENTICATION DOMAIN
+
+#### BaseUser (Identity User)
+```
+PK: Id (string)
+Properties:
+  - Email
+  - PhoneNumber
+  - FirstName
+  - LastName
+  - CreatedAt
+  - UpdatedAt
+  - IsActive
+```
+
+**Relationships:**
+- 1:N → Staff (one user can be one staff member)
+- 1:N → UserRole (junction table)
+- 1:N → CustomClaim (custom claims for authorization)
+
+#### Staff
+```
+PK: Id (string)
+FK: RestaurantId, RevenueCenterId, UserId, RoleId
+Properties:
+  - FirstName
+  - LastName
+  - Email
+  - PhoneNumber
+  - RoleName
+  - HashedPassword
+  - HashedPin
+  - Driver (boolean)
+  - IdNumber
+```
+
+**Relationships:**
+- N:1 ← Restaurant
+- N:1 ← RevenueCenter
+- N:1 ← BaseUser
+- N:1 ← UserRole
+- N:1 ← ItemPreparationArea
+- 1:N → Order (as CreatedBy, Driver, PaymentBy, VoidedBy)
+
+#### UserRole
+```
+PK: Id (string)
+FK: UserId
+Properties:
+  - RoleName
+  - Permissions
+```
+
+**Relationships:**
+- N:1 ← BaseUser
+- 1:N → RoleClaim
+
+#### CustomRole, CustomClaim
+```
+Used for granular permission control
+- CustomRole: Role definitions
+- CustomClaim: Custom permission claims
+```
+
+---
+
+### 🍔 ITEM & MENU DOMAIN
+
+#### Item (Main Product)
+```
+PK: Id (string)
+FK: RestaurantId, ItemClassId, TaxId, UnitOfMeasurementId
+Properties:
+  - Name
+  - ShortName
+  - Description
+  - ImageUrl
+  - SellingPrice
+  - CostPrice
+  - Unit
+  - ReorderLevel
+  - PrepTime
+  - IsTransformable
+  - IsVariablePrice
+```
+
+**Relationships:**
+- N:1 ← Restaurant
+- N:1 ← ItemClass
+- N:1 ← Tax
+- N:1 ← UnitOfMeasurement (selling UOM)
+- N:1 ← UnitOfMeasurement (inventory UOM)
+- 1:N → ItemVendor (junction)
+- 1:N → ItemSource (purchasing info)
+- 1:N → ItemLocation (storage locations)
+- 1:N → ItemRevenueCenter (junction)
+- 1:N → ItemComponent (item modifiers/toppings)
+- 1:N → SlideImage
+- 1:N → RecipeParent (items that contain this item)
+
+#### ItemClass (Category)
+```
+PK: Id (string)
+FK: RestaurantId
+Properties:
+  - Name
+  - Code
+  - Description
+  - Sequence
+```
+
+**Relationships:**
+- N:1 ← Restaurant
+- 1:N → Item
+- 1:N → ClassRevenueCenter (junction)
+- Used in ItemOrder for categorization
+
+#### ItemParent
+```
+Represents a parent item/group
+FK: RestaurantId, ItemClassId, TaxId
+```
+
+**Relationships:**
+- N:1 ← Restaurant
+- 1:N → Item (parent contains multiple items)
+- 1:N → ItemRecipe (parent's recipes)
+- 1:N → ItemPrice (different prices for parent)
+- 1:N → ItemSource (parent's sources)
+
+#### ItemPackage (Bundle/Combo)
+```
+PK: Id (string)
+FK: RestaurantId
+Properties:
+  - Name
+  - Price
+  - Description
+  - Status
+```
+
+**Relationships:**
+- N:1 ← Restaurant
+- 1:N → ItemPackageSource
+- Contains multiple items as a bundle
+
+#### RecipeParent
+```
+Groups items that share recipes
+FK: RestaurantId, ItemClassId, TaxId
+```
+
+**Relationships:**
+- N:1 ← Restaurant
+- 1:N → Item (items in this recipe)
+- 1:N → ItemRecipe
+
+---
+
+### 📝 RECIPE & COMPOSITION DOMAIN
+
+#### ItemRecipe (Recipe Definition)
+```
+PK: Id (string)
+FK: RestaurantId, ItemClassId, TaxId, UnitOfMeasurementId
+Properties:
+  - Name
+  - Unit
+  - CostPrice
+  - SellingPrice
+  - ImageUrl
+  - ItemType
+  - ItemGroup
+```
+
+**Relationships:**
+- N:1 ← Restaurant
+- N:1 ← ItemClass
+- N:1 ← Tax
+- N:1 ← UnitOfMeasurement
+- 1:N → RecipeItem (items in recipe)
+- 1:N → ItemRecipeComponent (recipe modifiers)
+- 1:N → ItemRecipeSource (recipe purchase sources)
+- 1:N → RecipeRevenueCenter (junction)
+
+#### RecipeItem (Junction: ItemRecipe ↔ Item)
+```
+FK: ItemRecipeId, ItemId
+Properties:
+  - Quantity
+  - UnitOfMeasurementId
+  - UnitOfMeasure
+  - Name
+```
+
+**Relationships:**
+- N:1 ← ItemRecipe
+- N:1 ← Item
+
+#### ItemRecipeComponent (Recipe Modifiers/Toppings)
+```
+Defines optional components in recipe
+```
+
+#### RecipeArea (Preparation Areas)
+```
+Preparation area for recipe items
+```
+
+#### RecipeRevenueCenter (Junction)
+```
+Links recipes to specific revenue centers
+```
+
+---
+
+### 🛒 ORDER DOMAIN
+
+#### Order (Main Order)
+```
+PK: Id (string)
+FK: RestaurantId, RevenueCenterId, TableId, SessionId, DiscountCodeId, TransactionId, SourceId, PriceListId
+Properties:
+  - GuestCount
+  - TotalAmount
+  - OrderStatus (Created, Pending, Ready, Completed, Cancelled)
+  - SalesChannel (Dine-In, Takeout, Delivery, Online)
+  - OrderType
+  - ServiceType
+  - IsPaid
+  - IsVoid
+  - HasRefunds
+  - IsRefundOrder
+  - IsSplitOrder
+  - Tip
+  - Change
+  - MemberPhoneNo
+  - MemberId
+  - CreatedAt
+  - PaidAt
+```
+
+**Relationships:**
+- N:1 ← Restaurant
+- N:1 ← RevenueCenter
+- N:1 ← Table
+- N:1 ← Session
+- N:1 ← DiscountCode
+- N:1 ← Source (sales channel source)
+- N:1 ← PriceList
+- 1:N ← Staff (CreatedBy, Driver, PaymentBy, VoidedBy)
+- 1:N → ItemOrder (items in order)
+- 1:N → OrderCharge (charges/fees)
+- 1:N → OrderPaymentChannel (payment methods)
+- 1:N → OrderTax (taxes applied)
+- 1:N → CustomOrderChannel
+- 1:N → OrderLog (audit trail)
+- 1:1 → OrderTransaction
+
+#### ItemOrder (Order Items)
+```
+PK: Id (string)
+FK: OrderId, ItemClassId
+Properties:
+  - Name
+  - Amount
+  - Price
+  - Quantity
+  - GroupingId (for grouping items)
+  - Status
+```
+
+**Relationships:**
+- N:1 ← Order
+- N:1 ← ItemClass
+- Contains individual items in an order
+
+#### OrderCharge (Order Fees)
+```
+PK: Id (string)
+FK: OrderId, ChargeTypeId
+Properties:
+  - ChargeAmount
+  - Reason
+```
+
+**Relationships:**
+- N:1 ← Order
+- N:1 ← ChargeType
+
+#### OrderPaymentChannel
+```
+PK: Id (string)
+FK: OrderId
+Properties:
+  - PaymentMethod (Cash, Card, Mobile, etc.)
+  - Amount
+  - Reference
+  - Status
+```
+
+**Relationships:**
+- N:1 ← Order
+- Records how order was paid
+
+#### OrderTax
+```
+FK: OrderId, TaxId
+Properties:
+  - TaxAmount
+```
+
+**Relationships:**
+- N:1 ← Order
+- N:1 ← Tax
+
+#### OrderTransaction (Payment Record)
+```
+PK: Id (string)
+FK: OrderId
+Properties:
+  - Amount
+  - TransactionReference
+  - PaymentGateway
+  - Status
+```
+
+**Relationships:**
+- 1:1 ← Order
+
+#### OrderLog (Audit Trail)
+```
+Records all order changes
+```
+
+#### CustomOrderChannel
+```
+Custom sales channels
+```
+
+#### Table
+```
+PK: Id (string)
+FK: RevenueCenterId
+Properties:
+  - TableNumber
+  - Capacity
+  - Status
+  - Location
+```
+
+**Relationships:**
+- N:1 ← RevenueCenter
+- 1:N → Order
+- 1:N → Session
+
+#### Session
+```
+Represents a dining session at a table
+```
+
+**Relationships:**
+- N:1 ← Table
+- 1:N → Order
+
+---
+
+### 💳 PRICING DOMAIN
+
+#### PriceList
+```
+PK: Id (string)
+FK: RestaurantId
+Properties:
+  - Name
+  - Description
+  - EffectiveDate
+  - Active
+```
+
+**Relationships:**
+- N:1 ← Restaurant
+- 1:N → PriceListItem
+- Referenced by Order
+
+#### PriceBook
+```
+Similar to PriceList, alternative pricing structure
+```
+
+#### PriceListItem, PriceBookItem
+```
+Individual price entries in price list/book
+```
+
+#### ItemPrice
+```
+Pricing information for items
+FK: ItemId, ItemParentId, RestaurantId
+```
+
+**Relationships:**
+- N:1 ← Item
+- N:1 ← ItemParent
+- N:1 ← Restaurant
+
+---
+
+### 🏭 INVENTORY & STOCK DOMAIN
+
+#### StockTransfer
+```
+PK: Id (string)
+FK: RestaurantId
+Properties:
+  - FromLocationId
+  - ToLocationId
+  - TransferDate
+  - Status
+  - Reason
+```
+
+**Relationships:**
+- N:1 ← Restaurant
+- 1:N → StockTransferReceipt
+- 1:N → StockLog
+
+#### StockTransferReceipt
+```
+Receipt for stock transfer
+FK: StockTransferId
+```
+
+**Relationships:**
+- N:1 ← StockTransfer
+- Contains items transferred
+
+#### StockTake (Inventory Count)
+```
+PK: Id (string)
+FK: RevenueCenterId
+Properties:
+  - CountDate
+  - Status
+  - CountedBy
+  - Variance
+```
+
+**Relationships:**
+- N:1 ← RevenueCenter
+- 1:N → ItemStockTake
+
+#### ItemStockTake
+```
+Individual item count in stock take
+FK: StockTakeId, ItemId
+Properties:
+  - QuantityCounted
+  - QuantityExpected
+  - Variance
+```
+
+**Relationships:**
+- N:1 ← StockTake
+- N:1 ← Item
+
+#### ItemLocation (Storage Location)
+```
+PK: Id (string)
+FK: ItemId, StoreLocationId
+Properties:
+  - ReorderLevel
+  - MaxCapacity
+  - CurrentStock
+```
+
+**Relationships:**
+- N:1 ← Item
+- N:1 ← StoreLocation
+
+#### StoreLocation
+```
+Physical storage locations in restaurant
+```
+
+#### ItemStoreReorder
+```
+Auto-reorder thresholds
+```
+
+#### StockLog
+```
+Audit trail for stock movements
+FK: ItemId, PurchaseOrderId, StockTransferId
+```
+
+**Relationships:**
+- N:1 ← Item
+- N:1 ← PurchaseOrder
+- N:1 ← StockTransfer
+
+#### StockMovementLog
+```
+Detailed movement tracking
+```
+
+#### StockRequest
+```
+Request for stock replenishment
+FK: RestaurantId
+```
+
+**Relationships:**
+- N:1 ← Restaurant
+- 1:N → PurchaseOrder
+
+#### StockAdjustment
+```
+Manual stock adjustments
+```
+
+#### InventoryShift
+```
+Inventory snapshot at specific time
+```
+
+#### StockTeams
+```
+Teams responsible for stock management
+```
+
+---
+
+### 🛍️ PURCHASING DOMAIN
+
+#### Vendor
+```
+PK: Id (string)
+FK: RestaurantId
+Properties:
+  - Name
+  - Email
+  - PhoneNumber
+  - Address
+  - City
+  - State
+  - NafdacRegistrationNumber
+  - CACRegistrationNumber
+  - TaxIdentificationNumber
+  - ProductCategory
+  - AccountNumber
+  - Bank
+  - Currency
+```
+
+**Relationships:**
+- N:1 ← Restaurant
+- 1:N → VendorItems (junction)
+- 1:N → PurchaseOrder (implied through items)
+
+#### VendorItems (Junction: Vendor ↔ Item)
+```
+FK: VendorId, ItemId
+```
+
+**Relationships:**
+- N:1 ← Vendor
+- N:1 ← Item
+
+#### ItemVendor (Alternative: Item ↔ Vendor)
+```
+FK: ItemId, VendorId
+Properties:
+  - UnitPrice
+  - DeliveryTime
+  - MinOrder
+```
+
+**Relationships:**
+- N:1 ← Item
+- N:1 ← Vendor
+
+#### ItemSource (Purchase Source)
+```
+FK: ItemId, RestaurantId
+Properties:
+  - UnitCost
+  - QuantityPerPack
+  - Supplier
+  - DeliveryTime
+```
+
+**Relationships:**
+- N:1 ← Item
+- N:1 ← Restaurant
+
+#### ItemRecipeSource
+```
+Purchase sources for recipe items
+```
+
+#### PurchaseOrder
+```
+PK: Id (string)
+FK: RestaurantId, StockRequestId
+Properties:
+  - Status (Draft, Pending, Completed, Rejected)
+  - Total
+  - ConfirmationDate
+  - DateCompleted
+  - EffectiveDate
+  - Currency
+```
+
+**Relationships:**
+- N:1 ← Restaurant
+- N:1 ← StockRequest
+- 1:N ← Staff (ApprovedBy, RejectedBy)
+- 1:N → ItemPurchaseRequest (items ordered)
+- 1:N → PurchaseReceipt (receipts)
+- 1:N → StockLog
+- 1:N → PurchaseCost
+
+#### ItemPurchaseRequest
+```
+Individual items in purchase order
+```
+
+#### PurchaseReceipt
+```
+Receipt for purchase order
+FK: PurchaseOrderId
+Properties:
+  - ReceiptDate
+  - TotalReceived
+  - Status
+```
+
+**Relationships:**
+- N:1 ← PurchaseOrder
+- 1:N → ItemPurchaseReceipt
+
+#### ItemPurchaseReceipt
+```
+Items received in purchase receipt
+```
+
+#### ItemPurchase
+```
+Historical purchase records
+```
+
+#### PurchaseCost
+```
+Cost tracking for purchases
+```
+
+---
+
+### 🎟️ DISCOUNT & PROMOTION DOMAIN
+
+#### DiscountCode
+```
+PK: Id (string)
+FK: RestaurantId
+Properties:
+  - Code
+  - DiscountValue
+  - DiscountType (Percentage, Fixed)
+  - ExpiryDate
+  - MaxUses
+  - CurrentUses
+  - MinOrderAmount
+  - Status
+```
+
+**Relationships:**
+- N:1 ← Restaurant
+- 1:N → Order
+
+#### Promotion
+```
+Marketing promotions
+FK: RestaurantId
+```
+
+**Relationships:**
+- N:1 ← Restaurant
+- 1:N → PromoItem (items in promotion)
+
+#### PromoItem
+```
+Items included in promotion
+```
+
+---
+
+### 💰 PAYMENT & FINANCIAL DOMAIN
+
+#### Transaction (Abstract Payment Record)
+```
+PK: Id (string)
+FK: OrderId
+Properties:
+  - Amount
+  - TransactionReference
+  - Status
+  - TransactionDate
+  - PaymentGateway
+```
+
+**Relationships:**
+- 1:1 ← Order
+
+#### RefundLog
+```
+PK: Id (string)
+FK: TransactionId
+Properties:
+  - Amount
+  - RefundDate
+  - Status
+  - Reason
+```
+
+**Relationships:**
+- N:1 ← Transaction
+
+#### OrderPaymentChannel
+```
+(See Order domain - payment methods used)
+```
+
+---
+
+### 👥 LOYALTY DOMAIN
+
+#### Loyalty
+```
+PK: Id (string)
+FK: CustomerId, RestaurantId
+Properties:
+  - Points
+  - Tier
+  - JoinDate
+  - Status
+```
+
+**Relationships:**
+- N:1 ← Customer
+- N:1 ← Restaurant
+
+#### LoyaltyConfig
+```
+Loyalty program configuration
+FK: RestaurantId
+Properties:
+  - PointsPerPurchase
+  - PointsValue
+  - TierThresholds
+  - RewardRules
+```
+
+**Relationships:**
+- N:1 ← Restaurant
+
+#### LoyaltyRev
+```
+Loyalty by revenue center
+```
+
+#### Member
+```
+Loyalty program member
+FK: CustomerId, RestaurantId
+```
+
+---
+
+### 👤 CUSTOMER DOMAIN
+
+#### Customer
+```
+PK: Id (string)
+FK: RestaurantId
+Properties:
+  - Name
+  - Email
+  - PhoneNumber
+  - Address
+  - City
+  - State
+  - CustomerType
+  - JoinDate
+  - CreatedAt
+```
+
+**Relationships:**
+- N:1 ← Restaurant
+- 1:N → Loyalty
+- 1:N → Member
+- Referenced by Order
+
+#### Reservation
+```
+Table reservations
+FK: RestaurantId, RevenueCenterId
+```
+
+**Relationships:**
+- N:1 ← Restaurant
+- N:1 ← RevenueCenter
+
+---
+
+### 📱 COMMUNICATIONS DOMAIN
+
+#### WhatsappAccount
+```
+WhatsApp business account
+FK: RestaurantId
+```
+
+**Relationships:**
+- N:1 ← Restaurant
+
+#### WhatsappBusinessAccount
+```
+Extended WhatsApp configuration
+```
+
+#### Newsletter
+```
+Newsletter subscriptions
+```
+
+#### CustomChannels
+```
+Custom communication channels
+FK: OrderId
+```
+
+**Relationships:**
+- N:1 ← Order
+
+#### NombaAccount, NombaRev
+```
+Nomba payment integration
+```
+
+#### EmbedlyRevCenter
+```
+Embedly integration
+```
+
+---
+
+### 📊 REPORTS DOMAIN
+
+#### Report
+```
+PK: Id (string)
+FK: RestaurantId
+Properties:
+  - ReportType
+  - GeneratedDate
+  - Data
+```
+
+**Relationships:**
+- N:1 ← Restaurant
+
+#### FoodCostReport
+```
+Food cost analysis
+FK: RevenueCenterId
+```
+
+**Relationships:**
+- N:1 ← RevenueCenter
+
+#### FoodCost
+```
+Food cost tracking
+```
+
+#### ShiftReport
+```
+Shift-based reports
+```
+
+#### ShiftList
+```
+Shift definitions
+```
+
+#### FinalShift
+```
+Final shift summary
+```
+
+#### FinalCost
+```
+Final cost summary
+```
+
+#### ScheduledReport
+```
+Recurring reports
+```
+
+#### ScheduledReportCron
+```
+Cron job for scheduled reports
+```
+
+---
+
+### 🎯 OTHER DOMAINS
+
+#### Tax
+```
+PK: Id (string)
+FK: RestaurantId
+Properties:
+  - Name
+  - Rate
+  - TaxCode
+  - AppliesTo (Items, Services, etc.)
+```
+
+**Relationships:**
+- N:1 ← Restaurant
+- 1:N → Item
+- 1:N → TaxRevenueCenter
+
+#### TaxRevenueCenter (Junction)
+```
+Taxes applicable per revenue center
+```
+
+#### UnitOfMeasurement
+```
+UOM definitions (kg, liter, piece, etc.)
+```
+
+#### UnitOMRelationship
+```
+Conversion between UOMs
+```
+
+#### ChargeType
+```
+Types of charges (Delivery, Service, etc.)
+```
+
+#### OrderCharge
+```
+(See Order Domain)
+```
+
+#### ChargeRevenueCenter (Junction)
+```
+Charges applicable per revenue center
+```
+
+#### ItemPreparationArea
+```
+Kitchen areas for item preparation
+FK: RestaurantId, RevenueCenterId
+```
+
+**Relationships:**
+- N:1 ← Restaurant
+- N:1 ← RevenueCenter
+- 1:N ← Staff (assigned staff)
+
+#### Source
+```
+Sales channels (Online, Counter, etc.)
+```
+
+#### ItemTransformation
+```
+Item transformation rules (cooking, combining, etc.)
+```
+
+#### Transformation
+```
+Abstract transformation definition
+```
+
+#### ItemComponent
+```
+Item modifiers/toppings/extras
+FK: ItemId, ItemClassId
+```
+
+**Relationships:**
+- N:1 ← Item
+- N:1 ← ItemClass
+
+#### DeductionLog
+```
+Deduction tracking
+```
+
+#### Admin
+```
+Admin user records
+```
+
+#### BannerImages, MobileImages
+```
+Restaurant marketing images
+```
+
+#### FeatureItems
+```
+Featured/promoted items
+```
+
+#### Blog
+```
+Blog posts for restaurant
+```
+
+#### DeviceToken
+```
+Device tokens for push notifications
+FK: RevenueCenterId
+```
+
+**Relationships:**
+- N:1 ← RevenueCenter
+
+#### Session
+```
+(See Order Domain - dining sessions)
+```
+
+#### OrderLog
+```
+Order audit trail
+```
+
+#### ItemLog
+```
+Item change history
+```
+
+#### StockLog
+```
+Stock movement history
+```
+
+#### SlideImage
+```
+Slideshow images for items
+```
+
+#### ItemComponent, ItemRecipeComponent
+```
+Modifiers for items/recipes
+```
+
+#### CustomClaim, CustomRole, RoleClaim
+```
+Fine-grained authorization
+```
+
+#### Newsletter
+```
+Email newsletter management
+```
+
+---
+
+## Complete Entity Relationship Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                            RESTAURANT (Root)                                   │
+│  PK: Id | Code | ContactNumber | Email | KDSEnabled | PayoutEnabled           │
+└─────────────────────────────────────────────────────────────────────────────────┘
+        │
+        ├─────1:N─────► RestaurantSetting (1:1)
+        ├─────1:N─────► RevenueCenter
+        ├─────1:N─────► Staff
+        ├─────1:N─────► Item
+        ├─────1:N─────► ItemParent
+        ├─────1:N─────► ItemRecipe
+        ├─────1:N─────► ItemPackage
+        ├─────1:N─────► Vendor
+        ├─────1:N─────► PriceList
+        ├─────1:N─────► Order
+        ├─────1:N─────► DiscountCode
+        ├─────1:N─────► Tax
+        ├─────1:N─────► UnitOfMeasurement
+        ├─────1:N─────► ChargeType
+        ├─────1:N─────► Source
+        ├─────1:N─────► Customer
+        ├─────1:N─────► Promotion
+        ├─────1:N─────► Reservation
+        ├─────1:N─────► BannerImages
+        ├─────1:N─────► MobileImages
+        ├─────1:N─────► FeatureItems
+        ├─────1:N─────► StockTeams
+        ├─────1:N─────► OpeningHours
+        ├─────1:N─────► StockRequest
+        ├─────1:N─────► Report
+        ├─────1:N─────► Blog
+        ├─────1:N─────► Newsletter
+        ├─────1:N─────► PurchaseOrder
+        ├─────1:N─────► LoyaltyConfig
+        ├─────1:N─────► NombaAccount
+        ├─────1:N─────► WhatsappAccount
+        └─────1:N─────► ScheduledReport
+
+        │
+        └─────1:N─────► RevenueCenter
+                 │
+                 ├─────1:N─────► Table
+                 │        │
+                 │        └─────1:N─────► Session
+                 │                 │
+                 │                 └─────1:N─────► Order
+                 │                          │
+                 │                          ├─────1:N─────► ItemOrder
+                 │                          ├─────1:N─────► OrderCharge
+                 │                          ├─────1:N─────► OrderPaymentChannel
+                 │                          ├─────1:N─────► OrderTax
+                 │                          ├─────1:N─────► CustomOrderChannel
+                 │                          ├─────1:N─────► OrderLog
+                 │                          ├─────1:1─────► OrderTransaction
+                 │                          │        │
+                 │                          │        └─────1:N─────► RefundLog
+                 │                          │
+                 │                          ├─────N:1─────► DiscountCode
+                 │                          ├─────N:1─────► PriceList
+                 │                          ├─────N:1─────► Source
+                 │                          └─────N:1─────► Staff (CreatedBy, Driver, etc)
+                 │
+                 ├─────1:N─────► ItemRevenueCenter (Junction: Item ↔ RevenueCenter)
+                 ├─────1:N─────► ClassRevenueCenter (Junction: ItemClass ↔ RevenueCenter)
+                 ├─────1:N─────► TaxRevenueCenter (Junction: Tax ↔ RevenueCenter)
+                 ├─────1:N─────► ChargeRevenueCenter (Junction: OrderCharge ↔ RevenueCenter)
+                 ├─────1:N─────► RevCenterArea (Preparation Areas)
+                 ├─────1:N─────► DeviceToken
+                 ├─────1:N─────► FoodCostReport
+                 └─────1:N─────► ScheduledReport
+
+        │
+        └─────1:N─────► Item
+                 │
+                 ├─────N:1─────► ItemClass
+                 ├─────N:1─────► Tax
+                 ├─────N:1─────► UnitOfMeasurement (selling UOM)
+                 ├─────N:1─────► UnitOfMeasurement (inventory UOM)
+                 ├─────1:N─────► ItemVendor (Junction: Item ↔ Vendor)
+                 ├─────1:N─────► ItemSource (Purchase sources)
+                 ├─────1:N─────► ItemLocation
+                 │        └─────N:1─────► StoreLocation
+                 ├─────1:N─────► ItemRevenueCenter (Junction)
+                 ├─────1:N─────► ItemComponent (Modifiers/Toppings)
+                 │        └─────N:1─────► ItemClass
+                 ├─────1:N─────► SlideImage
+                 ├─────1:N─────► RecipeParent (This item is in recipes)
+                 ├─────1:N─────► ItemPrice
+                 └─────1:N─────► ItemStockTake
+                 └─────1:N─────► RecipeItem (This item is made from ingredients)
+
+        │
+        └─────1:N─────► ItemRecipe
+                 │
+                 ├─────N:1─────► ItemClass
+                 ├─────N:1─────► Tax
+                 ├─────N:1─────► UnitOfMeasurement
+                 ├─────1:N─────► RecipeItem (Items that make up this recipe)
+                 │        └─────N:1─────► Item
+                 ├─────1:N─────► ItemRecipeComponent
+                 ├─────1:N─────► ItemRecipeSource
+                 ├─────1:N─────► RecipeRevenueCenter (Junction)
+                 └─────1:N─────► RecipeArea
+
+        │
+        └─────1:N─────► Vendor
+                 ├─────1:N─────► VendorItems (Junction: Vendor ↔ Item)
+                 │        └─────N:1─────► Item
+                 └─────1:N─────► PurchaseOrder
+                        ├─────1:N─────► ItemPurchaseRequest
+                        ├─────1:N─────► PurchaseReceipt
+                        │       └─────1:N─────► ItemPurchaseReceipt
+                        ├─────1:N─────► StockLog
+                        ├─────1:N─────► PurchaseCost
+                        └─────N:1─────► Staff (ApprovedBy, RejectedBy)
+
+        │
+        └─────1:N─────► StockTransfer
+                 ├─────1:N─────► StockTransferReceipt
+                 ├─────1:N─────► StockLog
+                 └─────1:N─────► StockMovementLog
+
+        │
+        └─────1:N─────► StockTake
+                 └─────1:N─────► ItemStockTake
+                        └─────N:1─────► Item
+
+        │
+        └─────1:N─────► Staff
+                 ├─────N:1─────► BaseUser
+                 ├─────N:1─────► UserRole
+                 ├─────N:1─────► RevenueCenter
+                 ├─────N:1─────► ItemPreparationArea
+                 └─────1:N (reverse)─────► Order (As various roles)
+
+        │
+        └─────1:N─────► PriceList
+                 └─────1:N─────► PriceListItem
+                        └─────N:1─────► Item
+
+        │
+        └─────1:N─────► Customer
+                 ├─────1:N─────► Loyalty
+                 ├─────1:N─────► Member
+                 └─────1:N (reverse)─────► Order
+
+        │
+        └─────1:N─────► StockRequest
+                 └─────1:N─────► PurchaseOrder
+```
+
+---
+
+## Detailed Entity Relationships
+
+### 1. Restaurant → RevenueCenter → Order → ItemOrder
+
+```
+Restaurant (1:N) ← → RevenueCenter (1:N) ← → Order (1:N) ← → ItemOrder
+```
+
+**Description**: A restaurant has multiple revenue centers (stores/branches). Each revenue center can have multiple orders. Each order contains multiple items (ItemOrder).
+
+**Example**:
+```
+Restaurant: "ChowDeck Lagos"
+└── RevenueCenter: "Marina Branch"
+    └── Order: "ORD-20260202-001"
+        └── ItemOrder: "Jollof Rice x2"
+        └── ItemOrder: "Fried Chicken x1"
+```
+
+### 2. Item → ItemClass → Restaurant
+
+```
+Item (N:1) ← → ItemClass (N:1) ← → Restaurant
+```
+
+**Description**: Items belong to restaurants and are categorized by ItemClass.
+
+**Example**:
+```
+Restaurant
+└── ItemClass: "Main Courses"
+    └── Item: "Jollof Rice"
+    └── Item: "Fried Rice"
+```
+
+### 3. Item → ItemRecipe → RecipeItem
+
+```
+Item (1:N) ← → RecipeItem (N:1) ← → ItemRecipe
+```
+
+**Description**: An item's recipe is defined by ItemRecipe. RecipeItem links items that make up that recipe.
+
+**Example**:
+```
+ItemRecipe: "Jollof Rice Recipe"
+└── RecipeItem: (Quantity: 2kg, Item: "Rice")
+└── RecipeItem: (Quantity: 1L, Item: "Tomato Sauce")
+└── RecipeItem: (Quantity: 500g, Item: "Pepper")
+```
+
+### 4. Item → ItemVendor → Vendor
+
+```
+Item (1:N) ← → ItemVendor (N:1) ← → Vendor
+```
+
+**Description**: Items can be sourced from multiple vendors. ItemVendor junction table tracks which vendors supply which items.
+
+**Example**:
+```
+Item: "Rice"
+├── ItemVendor: (Vendor: "Ahmed Supplies", UnitPrice: ₦5000)
+├── ItemVendor: (Vendor: "Gold Foods", UnitPrice: ₦4800)
+└── ItemVendor: (Vendor: "Quality Grains", UnitPrice: ₦5200)
+```
+
+### 5. Vendor → PurchaseOrder → ItemPurchaseRequest
+
+```
+Vendor (1:N) ← → PurchaseOrder (1:N) ← → ItemPurchaseRequest
+```
+
+**Description**: Purchase orders are placed with vendors for specific items.
+
+**Example**:
+```
+Vendor: "Ahmed Supplies"
+└── PurchaseOrder: "PO-001"
+    ├── ItemPurchaseRequest: (Item: "Rice", Qty: 50kg, Price: ₦250,000)
+    ├── ItemPurchaseRequest: (Item: "Oil", Qty: 20L, Price: ₦80,000)
+    └── ItemPurchaseRequest: (Item: "Salt", Qty: 10kg, Price: ₦5,000)
+```
+
+### 6. PurchaseOrder → PurchaseReceipt → ItemPurchaseReceipt
+
+```
+PurchaseOrder (1:N) ← → PurchaseReceipt (1:N) ← → ItemPurchaseReceipt
+```
+
+**Description**: When items are received, they're recorded in PurchaseReceipt and linked back to PurchaseOrder.
+
+**Example**:
+```
+PurchaseOrder: "PO-001" (Total: ₦335,000)
+└── PurchaseReceipt: "REC-001" (Received: 2026-02-02)
+    ├── ItemPurchaseReceipt: (Item: "Rice", Qty: 50kg, Received: 50kg) ✓
+    ├── ItemPurchaseReceipt: (Item: "Oil", Qty: 20L, Received: 19.5L) ⚠️
+    └── ItemPurchaseReceipt: (Item: "Salt", Qty: 10kg, Received: 10kg) ✓
+```
+
+### 7. StockTransfer → StockTransferReceipt
+
+```
+StockTransfer (1:N) ← → StockTransferReceipt
+```
+
+**Description**: Transfers stock from one location to another, with receipts confirming receipt.
+
+**Example**:
+```
+StockTransfer: "ST-001" (From: Central Store, To: Marina Branch)
+└── StockTransferReceipt: (Date: 2026-02-02, Status: Received)
+    ├── Item: "Rice" - 50kg transferred
+    ├── Item: "Oil" - 10L transferred
+    └── Item: "Pepper" - 5kg transferred
+```
+
+### 8. Order → OrderPaymentChannel & Transaction
+
+```
+Order (1:N) ← → OrderPaymentChannel
+Order (1:1) ← → OrderTransaction (1:N) ← → RefundLog
+```
+
+**Description**: Orders track payment methods and transactions, with refund history.
+
+**Example**:
+```
+Order: "ORD-001" (Total: ₦25,000)
+├── OrderPaymentChannel: (Card, ₦20,000)
+├── OrderPaymentChannel: (Cash, ₦5,000)
+└── OrderTransaction
+    ├── TransactionId: "TRX-001"
+    ├── Status: "Completed"
+    └── RefundLog: (Amount: ₦2,000, Reason: "Partial refund", Date: 2026-02-02)
+```
+
+### 9. Order → OrderCharge
+
+```
+Order (1:N) ← → OrderCharge (N:1) ← → ChargeType
+```
+
+**Description**: Orders can have additional charges like delivery fees, service charges, etc.
+
+**Example**:
+```
+Order: "ORD-001"
+├── OrderCharge: (ChargeType: "Delivery", Amount: ₦2,000)
+├── OrderCharge: (ChargeType: "Service", Amount: ₦1,000)
+└── OrderCharge: (ChargeType: "Packaging", Amount: ₦500)
+```
+
+### 10. StockTake → ItemStockTake
+
+```
+StockTake (1:N) ← → ItemStockTake (N:1) ← → Item
+```
+
+**Description**: Physical inventory counts with variance tracking.
+
+**Example**:
+```
+StockTake: "ST-COUNT-001" (Date: 2026-02-02)
+├── ItemStockTake: (Item: "Rice", Expected: 100kg, Counted: 98kg, Variance: -2kg)
+├── ItemStockTake: (Item: "Oil", Expected: 50L, Counted: 50L, Variance: 0L) ✓
+└── ItemStockTake: (Item: "Salt", Expected: 20kg, Counted: 22kg, Variance: +2kg)
+```
+
+### 11. Loyalty Program
+
+```
+Restaurant (1:N) ← → LoyaltyConfig
+Customer (1:N) ← → Loyalty (N:1) ← → Restaurant
+```
+
+**Description**: Loyalty programs track customer points and rewards.
+
+**Example**:
+```
+Restaurant: "ChowDeck Lagos"
+└── LoyaltyConfig: (PointsPerPurchase: 1pt per ₦100, TierThresholds: Bronze>Silver>Gold)
+    └── Customer: "John Doe"
+        └── Loyalty: (Points: 5,000, Tier: "Silver", JoinDate: 2025-01-01)
+```
+
+### 12. Authorization Hierarchy
+
+```
+BaseUser (1:N) ← → UserRole (1:N) ← → RoleClaim
+                                            ↑
+                                      CustomClaim (N:1)
+```
+
+**Description**: Fine-grained authorization system.
+
+**Example**:
+```
+BaseUser: "admin@restaurant.com"
+└── UserRole: "Admin"
+    ├── RoleClaim: (Permission: "CanViewReports")
+    ├── RoleClaim: (Permission: "CanDeleteOrder")
+    ├── RoleClaim: (Permission: "CanManageStaff")
+    └── RoleClaim: (Permission: "CanApprovePurchaseOrder")
+```
+
+---
+
+## Junction Tables (Many-to-Many)
+
+| Junction Table | Left Entity | Right Entity | Purpose |
+|---|---|---|---|
+| **ItemVendor** | Item | Vendor | Track which vendors supply items |
+| **VendorItems** | Vendor | Item | Alternative to ItemVendor |
+| **ItemRevenueCenter** | Item | RevenueCenter | Items available at each location |
+| **ClassRevenueCenter** | ItemClass | RevenueCenter | Categories available per location |
+| **TaxRevenueCenter** | Tax | RevenueCenter | Tax rates per location |
+| **ChargeRevenueCenter** | OrderCharge | RevenueCenter | Charges applicable per location |
+| **RecipeItem** | ItemRecipe | Item | Items that make up a recipe |
+| **RecipeRevenueCenter** | ItemRecipe | RevenueCenter | Recipes available per location |
+| **ItemRecipeComponent** | ItemRecipe | ItemClass | Modifiers in recipe |
+| **ItemComponent** | Item | ItemClass | Modifiers for item |
+| **RecipeItem** | ItemRecipe | Item | Items in recipe composition |
+| **UserRole** | BaseUser | CustomRole | User roles |
+| **RoleClaim** | CustomRole | CustomClaim | Role permissions |
+| **PriceListItem** | PriceList | Item | Items in price list |
+| **PriceBookItem** | PriceBook | Item | Items in price book |
+| **PromoItem** | Promotion | Item | Items in promotion |
+| **ItemStoreLocation** | Item | StoreLocation | Where items are stored |
+| **ItemLocation** | Item | StoreLocation | Alt: Item storage locations |
+| **ItemSource** | Item | Vendor | Alternative purchase sources |
+| **ItemRecipeSource** | ItemRecipe | Vendor | Purchase sources for recipes |
+| **OrderTax** | Order | Tax | Taxes applied to order |
+| **CustomOrderChannel** | Order | CustomChannels | Custom channels for order |
+
+---
+
+## Relationship Summary
+
+### By Relationship Type
+
+#### One-to-One (1:1)
+- Restaurant ↔ RestaurantSetting
+- Order ↔ OrderTransaction
+- Table ↔ Session (implied)
+
+#### One-to-Many (1:N)
+- Restaurant → RevenueCenter
+- Restaurant → Staff
+- Restaurant → Item
+- Restaurant → Vendor
+- Restaurant → Order
+- Restaurant → PriceList
+- Restaurant → Tax
+- Restaurant → Customer
+- Restaurant → DiscountCode
+- Restaurant → Promotion
+- Restaurant → StockRequest
+- Restaurant → Report
+- RevenueCenter → Table
+- RevenueCenter → Order
+- RevenueCenter → RevCenterArea
+- ItemClass → Item
+- ItemRecipe → RecipeItem
+- Vendor → PurchaseOrder
+- PurchaseOrder → PurchaseReceipt
+- PurchaseOrder → ItemPurchaseRequest
+- PurchaseReceipt → ItemPurchaseReceipt
+- Order → ItemOrder
+- Order → OrderCharge
+- Order → OrderPaymentChannel
+- Order → OrderTax
+- Order → CustomOrderChannel
+- Order → OrderLog
+- StockTransfer → StockTransferReceipt
+- StockTransfer → StockLog
+- StockTake → ItemStockTake
+- Table → Session
+- Session → Order
+- OrderTransaction → RefundLog
+- Customer → Loyalty
+- PriceList → PriceListItem
+- Promotion → PromoItem
+- DiscountCode → Order
+
+#### Many-to-One (N:1)
+- Item → Restaurant
+- Item → ItemClass
+- Item → Tax
+- Item → UnitOfMeasurement
+- Staff → Restaurant
+- Staff → RevenueCenter
+- Staff → UserRole
+- Staff → BaseUser
+- Vendor → Restaurant
+- PurchaseOrder → Restaurant
+- Order → Restaurant
+- Order → RevenueCenter
+- Order → DiscountCode
+- Order → PriceList
+- Order → Source
+- ItemOrder → Order
+- OrderCharge → Order
+- OrderCharge → ChargeType
+- OrderPaymentChannel → Order
+- OrderTax → Order
+- OrderTax → Tax
+- Loyalty → Customer
+- Loyalty → Restaurant
+- ItemLocation → StoreLocation
+- ItemVendor → Item (if used as primary)
+- ItemVendor → Vendor (if used as primary)
+
+#### Many-to-Many (Implicit or Explicit)
+- Item ←→ Vendor (via ItemVendor)
+- Item ←→ RevenueCenter (via ItemRevenueCenter)
+- ItemClass ←→ RevenueCenter (via ClassRevenueCenter)
+- Tax ←→ RevenueCenter (via TaxRevenueCenter)
+- ItemRecipe ←→ Item (via RecipeItem)
+- ItemRecipe ←→ RevenueCenter (via RecipeRevenueCenter)
+- Order ←→ Tax (via OrderTax)
+- PriceList ←→ Item (via PriceListItem)
+- Promotion ←→ Item (via PromoItem)
+
+### By Domain
+
+| Domain | Entity Count | Key Relationships |
+|--------|---|---|
+| Restaurant Management | 5 | Restaurant → RevenueCenter, RestaurantSetting |
+| User & Authorization | 6 | BaseUser → UserRole → RoleClaim |
+| Items & Menu | 12 | Item → ItemClass → Restaurant |
+| Recipes & Composition | 6 | ItemRecipe → RecipeItem → Item |
+| Ordering | 11 | Order → ItemOrder, OrderCharge, OrderPaymentChannel |
+| Inventory & Stock | 12 | StockTransfer, StockTake, ItemLocation |
+| Purchasing | 10 | Vendor → PurchaseOrder → ItemPurchaseRequest |
+| Pricing | 6 | PriceList → PriceListItem → Item |
+| Payments & Financial | 4 | OrderTransaction → RefundLog |
+| Loyalty | 4 | Loyalty → Customer, LoyaltyConfig → Restaurant |
+| Communications | 5 | WhatsappAccount, Newsletter, CustomChannels |
+| Reports | 8 | Report, FoodCostReport, ShiftReport, ScheduledReport |
+| Other | 15 | ChargeType, Tax, UnitOfMeasurement, Source, etc. |
+
+---
+
+## Total Entity Count
+
+**Total Entities: 105+**
+
+This comprehensive entity relationship structure enables FoodEase to handle complex restaurant operations including multi-location management, inventory tracking, order processing, financial transactions, and advanced reporting.
+

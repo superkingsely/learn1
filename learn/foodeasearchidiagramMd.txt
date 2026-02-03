@@ -1,0 +1,812 @@
+
+# FoodEase API - Architecture Diagrams & Visual Guides
+
+## 1. Complete System Architecture
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│                     CLIENT APPLICATIONS                        │
+│  (Web Frontend, Mobile App, Desktop Client, Third-party)      │
+└────────────────────────────────────────────────────────────────┘
+                              ↑↓
+                         HTTP/HTTPS
+                              ↑↓
+┌────────────────────────────────────────────────────────────────┐
+│                    API GATEWAY (Optional)                      │
+│            (Rate Limiting, Load Balancing, Security)           │
+└────────────────────────────────────────────────────────────────┘
+                              ↑↓
+┌────────────────────────────────────────────────────────────────┐
+│              FOODEASE API (ASP.NET Core 6.0)                   │
+│                                                                 │
+│  ┌──────────────────────────────────────────────────────────┐ │
+│  │         PRESENTATION LAYER (Controllers)                │ │
+│  │  ┌──────────────────────────────────────────────────┐   │ │
+│  │  │ OrderController │ ItemController │ Etc...        │   │ │
+│  │  │ (HTTP Requests/Responses, Input Validation)     │   │ │
+│  │  └──────────────────────────────────────────────────┘   │ │
+│  └──────────────────────────────────────────────────────────┘ │
+│                              ↑↓                                │
+│  ┌──────────────────────────────────────────────────────────┐ │
+│  │           SERVICE LAYER (Business Logic)               │ │
+│  │  ┌──────────────────────────────────────────────────┐   │ │
+│  │  │ OrderService │ ItemService │ PaymentService │   │   │ │
+│  │  │ - Validation - Business Rules - Data Processing│   │ │
+│  │  │ - AutoMapper Profiles - Hangfire Jobs          │   │ │
+│  │  └──────────────────────────────────────────────────┘   │ │
+│  │  ServiceManager (Facade Pattern - Lazy Loading)        │ │
+│  └──────────────────────────────────────────────────────────┘ │
+│                              ↑↓                                │
+│  ┌──────────────────────────────────────────────────────────┐ │
+│  │         REPOSITORY LAYER (Data Access)                 │ │
+│  │  ┌──────────────────────────────────────────────────┐   │ │
+│  │  │ OrderRepository │ ItemRepository │ Etc...        │   │ │
+│  │  │ - LINQ Queries - EF Core Operations             │   │ │
+│  │  │ - Data Mapping - Transaction Management         │   │ │
+│  │  └──────────────────────────────────────────────────┘   │ │
+│  │  RepositoryManager (Facade Pattern)                    │ │
+│  │  RepositoryContext (EF Core DbContext)                │ │
+│  └──────────────────────────────────────────────────────────┘ │
+│                              ↑↓                                │
+│  ┌──────────────────────────────────────────────────────────┐ │
+│  │            CROSS-CUTTING CONCERNS                      │ │
+│  │  - Authentication (JWT) - Authorization (Roles)       │ │
+│  │  - Logging (Serilog) - Error Handling                │ │
+│  │  - Caching - CORS - Swagger/OpenAPI                  │ │
+│  └──────────────────────────────────────────────────────────┘ │
+└────────────────────────────────────────────────────────────────┘
+                              ↑↓
+        ┌─────────────────────┼─────────────────────┐
+        ↓                     ↓                     ↓
+┌──────────────────┐  ┌───────────────────┐  ┌──────────────┐
+│    PostgreSQL    │  │  Payment Gateway  │  │ Email/SMS    │
+│    Database      │  │ (Flutterwave,     │  │ Services     │
+│                  │  │  PayStack, etc.)  │  │ (SMTP)       │
+└──────────────────┘  └───────────────────┘  └──────────────┘
+        ↑                     ↑                     ↑
+        ├─────────────────────┼─────────────────────┤
+        │                     │                     │
+        └─────────────────────┼─────────────────────┘
+                              ↓
+                    ┌──────────────────────┐
+                    │  Logging Service     │
+                    │  - Serilog           │
+                    │  - Seq (Central Log) │
+                    │  - Kafka (Events)    │
+                    └──────────────────────┘
+                              ↑↓
+            ┌─────────────────────────────────┐
+            │  Background Jobs (Hangfire)     │
+            │  - Scheduled Reports            │
+            │  - Payment Processing           │
+            │  - Notifications                │
+            │  - Stock Management             │
+            └─────────────────────────────────┘
+```
+
+---
+
+## 2. Request Lifecycle Flow
+
+```
+HTTP Request Received
+     ↓
+┌─────────────────────────────────────────┐
+│ Middleware Pipeline                     │
+│ 1. CORS Validation                      │
+│ 2. Authentication (JWT Verification)    │
+│ 3. Authorization (Role Check)           │
+│ 4. Logging/Tracing                      │
+└─────────────────────────────────────────┘
+     ↓
+┌─────────────────────────────────────────┐
+│ Route Matching                          │
+│ Maps URL to Controller Action           │
+│ Example: POST /api/v1/order/create      │
+│ → OrderController.CreateOrder()         │
+└─────────────────────────────────────────┘
+     ↓
+┌─────────────────────────────────────────┐
+│ Model Binding & Validation              │
+│ 1. Deserialize JSON to DTO              │
+│ 2. Validate required fields             │
+│ 3. Check data annotations               │
+└─────────────────────────────────────────┘
+     ↓ (Valid?)
+     ├─→ NO → Return 400 BadRequest
+     │
+     ↓ (YES)
+┌─────────────────────────────────────────┐
+│ Controller Action Executed              │
+│ - Extract claims from JWT               │
+│ - Prepare request parameters            │
+│ - Call Service Method                   │
+└─────────────────────────────────────────┘
+     ↓
+┌─────────────────────────────────────────┐
+│ Service Layer Processing                │
+│ 1. Business Logic Validation            │
+│ 2. Data Transformation (DTO → Entity)   │
+│ 3. Call Repository Methods              │
+│ 4. Handle Exceptions                    │
+└─────────────────────────────────────────┘
+     ↓
+┌─────────────────────────────────────────┐
+│ Repository Layer Processing             │
+│ 1. Build LINQ Query                     │
+│ 2. Execute Database Command             │
+│ 3. Return Results                       │
+│ 4. Handle DB Exceptions                 │
+└─────────────────────────────────────────┘
+     ↓
+┌─────────────────────────────────────────┐
+│ Database Operation (PostgreSQL)         │
+│ INSERT / SELECT / UPDATE / DELETE       │
+│ Transaction Management                  │
+│ Commit/Rollback                         │
+└─────────────────────────────────────────┘
+     ↓
+┌─────────────────────────────────────────┐
+│ Data Returned to Repository             │
+└─────────────────────────────────────────┘
+     ↓
+┌─────────────────────────────────────────┐
+│ Service Post-Processing                 │
+│ 1. Map Entity to Response DTO           │
+│ 2. Additional data enrichment           │
+│ 3. Cache update (if applicable)         │
+└─────────────────────────────────────────┘
+     ↓
+┌─────────────────────────────────────────┐
+│ Controller Response Building            │
+│ 1. Wrap in GlobalResponse<T>            │
+│ 2. Set HTTP Status Code                 │
+│ 3. Add Response Headers                 │
+└─────────────────────────────────────────┘
+     ↓
+┌─────────────────────────────────────────┐
+│ Response Serialization                  │
+│ Serialize to JSON                       │
+└─────────────────────────────────────────┘
+     ↓
+┌─────────────────────────────────────────┐
+│ Middleware Pipeline (Response)          │
+│ 1. Add Security Headers                 │
+│ 2. Compress Response (gzip)             │
+│ 3. Log Response                         │
+└─────────────────────────────────────────┘
+     ↓
+HTTP Response Sent to Client
+```
+
+---
+
+## 3. Dependency Injection Container
+
+```
+When Application Starts:
+     ↓
+program.cs Executed
+     ↓
+┌───────────────────────────────────────────────────────────────┐
+│ ServiceExtensions.ConfigureRepositoryManager()                │
+│ ↓                                                              │
+│ services.AddScoped<IRepositoryManager, RepositoryManager>()   │
+│                                                                │
+│ What this does:                                               │
+│ - Register RepositoryManager as scoped service                │
+│ - One instance per HTTP request                              │
+│ - Injected wherever IRepositoryManager is needed              │
+└───────────────────────────────────────────────────────────────┘
+     ↓
+┌───────────────────────────────────────────────────────────────┐
+│ ServiceExtensions.ConfigureServiceManager()                   │
+│ ↓                                                              │
+│ services.AddScoped<IServiceManager, ServiceManager>()         │
+│                                                                │
+│ ServiceManager has Lazy<T> properties:                        │
+│ - Lazy<IOrderService> _orderService                          │
+│ - Lazy<IItemService> _itemService                            │
+│ - ... (50+ lazy services)                                    │
+│                                                                │
+│ Only instantiated when first accessed:                        │
+│ _service.OrderService.GetAll()  → IOrderService created      │
+└───────────────────────────────────────────────────────────────┘
+     ↓
+┌───────────────────────────────────────────────────────────────┐
+│ PostgrsContext Registration                                   │
+│ ↓                                                              │
+│ services.AddDbContext<RepositoryContext>(options =>           │
+│   options.UseNpgsql(connectionString)                         │
+│ );                                                             │
+│                                                                │
+│ RepositoryContext has DbSets:                                │
+│ - DbSet<Order>                                               │
+│ - DbSet<Item>                                                │
+│ - ... (100+ DbSets)                                          │
+└───────────────────────────────────────────────────────────────┘
+     ↓
+┌───────────────────────────────────────────────────────────────┐
+│ Controller Requests Dependency                                │
+│                                                                │
+│ public class OrderController                                  │
+│ {                                                              │
+│   public OrderController(IServiceManager service)             │
+│   {  // DI Container provides IServiceManager instance        │
+│      _service = service;                                      │
+│   }                                                            │
+│ }                                                              │
+└───────────────────────────────────────────────────────────────┘
+     ↓
+┌───────────────────────────────────────────────────────────────┐
+│ ServiceManager requests Repository                            │
+│                                                                │
+│ public ServiceManager(IRepositoryManager repository)          │
+│ {  // DI Container provides IRepositoryManager instance       │
+│    _repository = repository;                                  │
+│ }                                                              │
+└───────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 4. Entity Relationship Diagram (Simplified)
+
+```
+                          ┌──────────────────┐
+                          │  Restaurant      │
+                          │  ├─ Id           │
+                          │  ├─ Name         │
+                          │  └─ Code         │
+                          └──────────────────┘
+                                   │
+                 ┌─────────────────┼─────────────────┐
+                 ↓                 ↓                 ↓
+        ┌──────────────┐   ┌──────────────┐   ┌──────────────┐
+        │ RevenueCenter│   │ItemParent     │   │ Staff        │
+        │ ├─ Id        │   │├─ Id          │   │ ├─ Id        │
+        │ ├─ Name      │   │├─ Code        │   │ ├─ Name      │
+        │ └─ Location  │   │└─ ParentName  │   │ └─ Email     │
+        └──────────────┘   └──────────────┘   └──────────────┘
+                 │                 │
+                 ↓                 ↓
+        ┌──────────────┐   ┌──────────────┐
+        │ Table        │   │ Item         │
+        │ ├─ Id        │   │ ├─ Id        │
+        │ ├─ Name      │   │ ├─ Code      │
+        │ └─ Capacity  │   │ ├─ Name      │
+        └──────────────┘   │ ├─ Price     │
+                           │ └─ Class     │
+        ┌──────────────┐   └──────────────┘
+        │ Order        │           │
+        │ ├─ Id        │           ↓
+        │ ├─ Number    │   ┌──────────────┐
+        │ ├─ Date      │   │ItemRecipe    │
+        │ ├─ Total     │   │├─ ItemId     │
+        │ └─ Status    │   │├─ RecipeItem │
+        └──────────────┘   │└─ Quantity   │
+                 ↓         └──────────────┘
+        ┌──────────────┐
+        │ItemOrder     │
+        │├─ OrderId    │
+        │├─ ItemId     │
+        │├─ Quantity   │
+        │└─ Price      │
+        └──────────────┘
+
+        ┌──────────────┐   ┌──────────────┐
+        │OrderPayment  │   │ Transaction  │
+        │├─ OrderId    │   │ ├─ Id        │
+        │├─ Channel    │   │ ├─ Amount    │
+        │└─ Amount     │   │ ├─ Status    │
+        └──────────────┘   │ └─ Reference │
+                           └──────────────┘
+```
+
+---
+
+## 5. Service Layer Organization
+
+```
+                      IServiceManager (Interface)
+                              ↓
+                      ServiceManager (Implementation)
+                              ↓
+          ┌───────────────────┼───────────────────┐
+          │                   │                   │
+    Lazy<IOrderService>  Lazy<IItemService>  Lazy<IPaymentService>
+          │                   │                   │
+          ↓                   ↓                   ↓
+    ┌──────────────┐   ┌──────────────┐   ┌──────────────┐
+    │OrderService  │   │ItemService   │   │PaymentService│
+    │              │   │              │   │              │
+    │Methods:      │   │Methods:      │   │Methods:      │
+    │•CreateOrder()│   │•CreateItem() │   │•ProcessPay() │
+    │•GetOrder()   │   │•GetItem()    │   │•Refund()     │
+    │•UpdateOrder()│   │•UpdateItem() │   │•GetBalance() │
+    │•DeleteOrder()│   │•DeleteItem() │   │•GetHistory() │
+    │•PayOrder()   │   │•GetRecipe()  │   └──────────────┘
+    │•CancelOrder()│   │•UpdateRecipe()
+    └──────────────┘   └──────────────┘
+          ↓                   ↓
+    Uses:                Uses:
+    •OrderRepository     •ItemRepository
+    •PaymentRepository   •ItemRecipeRepository
+    •OrderLogRepository  •ItemSourceRepository
+    •AutoMapper          •AutoMapper
+    •Logger              •Logger
+```
+
+---
+
+## 6. Database Schema Overview (Key Tables)
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│ restaurants                                                    │
+│ ├─ id (PK)                                                    │
+│ ├─ name                                                       │
+│ ├─ code                                                       │
+│ ├─ created_at                                                 │
+│ └─ updated_at                                                 │
+└────────────────────────────────────────────────────────────────┘
+                           ↑
+              Foreign Key Reference
+                           ↓
+┌────────────────────────────────────────────────────────────────┐
+│ revenue_centers                                                │
+│ ├─ id (PK)                                                    │
+│ ├─ restaurant_id (FK → restaurants)                           │
+│ ├─ name                                                       │
+│ ├─ type (store, branch, etc.)                                │
+│ └─ location                                                   │
+└────────────────────────────────────────────────────────────────┘
+          ↑                           ↑
+          │ FK                        │ FK
+          ↓                           ↓
+      ┌──────────────┐          ┌──────────────┐
+      │ tables       │          │ items        │
+      │ ├─ id (PK)   │          │ ├─ id (PK)   │
+      │ ├─ rev_id(FK)│          │ ├─ code      │
+      │ └─ name      │          │ ├─ name      │
+      └──────────────┘          │ ├─ price     │
+           ↑                    │ └─ class_id  │
+           │ FK                 └──────────────┘
+           ↓                           ↑
+      ┌──────────────┐                │ FK
+      │ orders       │                ↓
+      │ ├─ id (PK)   │          ┌──────────────┐
+      │ ├─ number    │          │item_recipes  │
+      │ ├─ table_id  │          │├─ id (PK)    │
+      │ ├─ total     │          │├─ item_id(FK)│
+      │ └─ status    │          │└─ quantity   │
+      └──────────────┘          └──────────────┘
+           ↑
+           │ FK
+           ↓
+      ┌──────────────┐
+      │ order_items  │
+      │ ├─ id (PK)   │
+      │ ├─ order_id  │
+      │ ├─ item_id   │
+      │ └─ quantity  │
+      └──────────────┘
+```
+
+---
+
+## 7. Authentication Flow
+
+```
+Login Request
+   ↓
+┌─────────────────────────────────────┐
+│ AuthController.Login()              │
+│ - Receive credentials               │
+│ - Validate email format             │
+└─────────────────────────────────────┘
+   ↓
+┌─────────────────────────────────────┐
+│ UserService.AuthenticateUser()      │
+│ - Query database for user           │
+│ - Hash and compare password         │
+│ - Return user if valid              │
+└─────────────────────────────────────┘
+   ↓ (Valid?)
+   ├─→ NO → Unauthorized 401
+   │
+   ↓ (YES)
+┌─────────────────────────────────────┐
+│ TokenService.GenerateToken()        │
+│ - Create JWT payload with claims    │
+│ - Add user ID, roles, permissions   │
+│ - Sign with secret key              │
+│ - Return token string               │
+└─────────────────────────────────────┘
+   ↓
+┌─────────────────────────────────────┐
+│ Return Response                     │
+│ {                                   │
+│   "token": "eyJhbGciOiJIUzI...",   │
+│   "expiration": "2026-02-02..."     │
+│ }                                   │
+└─────────────────────────────────────┘
+   ↓
+Client Stores Token
+   ↓
+┌─────────────────────────────────────┐
+│ All Future Requests Include Header  │
+│ Authorization: Bearer {token}       │
+└─────────────────────────────────────┘
+   ↓
+┌─────────────────────────────────────┐
+│ JWT Bearer Middleware                │
+│ 1. Extract token from header        │
+│ 2. Verify signature                 │
+│ 3. Check expiration                 │
+│ 4. Extract claims                   │
+│ 5. Create user principal            │
+└─────────────────────────────────────┘
+   ↓ (Valid?)
+   ├─→ NO → Unauthorized 401
+   │
+   ↓ (YES)
+┌─────────────────────────────────────┐
+│ Request Continues                   │
+│ User Principal Available to action  │
+│ via User.FindFirst(ClaimTypes.Id)   │
+└─────────────────────────────────────┘
+```
+
+---
+
+## 8. Order Processing Pipeline
+
+```
+Order Creation
+   ↓
+┌──────────────────────────────┐
+│ OrderController.CreateOrder()│
+└──────────────────────────────┘
+   ↓
+┌──────────────────────────────┐
+│ OrderService.CreateOrder()   │
+│ ✓ Validate order data        │
+│ ✓ Check inventory levels     │
+│ ✓ Calculate total amount     │
+│ ✓ Map DTO → Entity           │
+└──────────────────────────────┘
+   ↓
+┌──────────────────────────────┐
+│ OrderRepository.CreateAsync()│
+│ ✓ Add to DbContext           │
+│ ✓ Generate Order ID          │
+│ ✓ Save to database           │
+└──────────────────────────────┘
+   ↓
+Order Created (Status: CREATED)
+   ↓
+┌──────────────────────────────┐
+│ Order Confirmation           │
+│ • Send email receipt         │
+│ • Log order creation         │
+│ • Update inventory           │
+└──────────────────────────────┘
+   ↓
+Customer Reviews Order
+   ↓
+┌──────────────────────────────┐
+│ Kitchen Prepares Order       │
+│ (Status: PREPARING)          │
+└──────────────────────────────┘
+   ↓
+┌──────────────────────────────┐
+│ Order Marked Ready           │
+│ (Status: READY)              │
+│ • Notification sent to table │
+└──────────────────────────────┘
+   ↓
+┌──────────────────────────────┐
+│ Payment Processing           │
+│ • User initiates payment     │
+│ • Call payment gateway       │
+│ • Process transaction        │
+└──────────────────────────────┘
+   ↓ (Payment successful?)
+   ├─→ NO → Status: PAYMENT_FAILED
+   │
+   ↓ (YES)
+┌──────────────────────────────┐
+│ Order Completed              │
+│ (Status: COMPLETED)          │
+│ • Send delivery confirmation │
+│ • Update financial records   │
+│ • Generate receipt           │
+└──────────────────────────────┘
+   ↓
+Order Closed
+```
+
+---
+
+## 9. Code Addition Flow (Contributing)
+
+```
+Identify Feature/Bug
+   ↓
+Create Feature Branch
+├─ feature/feature-name
+├─ bugfix/bug-name
+└─ refactor/refactor-name
+   ↓
+┌──────────────────────────────────────┐
+│ Step 1: Entity & Contract            │
+│ ├─ Create/Update Entity              │
+│ ├─ Create Repository Interface       │
+│ └─ Add to DbContext                  │
+└──────────────────────────────────────┘
+   ↓
+┌──────────────────────────────────────┐
+│ Step 2: Repository Implementation    │
+│ ├─ Implement IRepository interface   │
+│ ├─ Add LINQ queries                  │
+│ └─ Add to RepositoryManager          │
+└──────────────────────────────────────┘
+   ↓
+┌──────────────────────────────────────┐
+│ Step 3: Service Layer                │
+│ ├─ Create Service Interface          │
+│ ├─ Implement Service class           │
+│ ├─ Add business logic                │
+│ └─ Add to ServiceManager             │
+└──────────────────────────────────────┘
+   ↓
+┌──────────────────────────────────────┐
+│ Step 4: AutoMapper Configuration     │
+│ ├─ Create DTOs                       │
+│ ├─ Add mapping profile               │
+│ └─ Register profile                  │
+└──────────────────────────────────────┘
+   ↓
+┌──────────────────────────────────────┐
+│ Step 5: Controller Endpoint          │
+│ ├─ Add HttpGet/Post/Put/Delete       │
+│ ├─ Call service method               │
+│ ├─ Build response                    │
+│ └─ Return HTTP response              │
+└──────────────────────────────────────┘
+   ↓
+┌──────────────────────────────────────┐
+│ Step 6: Database Migration           │
+│ ├─ dotnet ef migrations add          │
+│ ├─ Review migration file             │
+│ └─ dotnet ef database update         │
+└──────────────────────────────────────┘
+   ↓
+┌──────────────────────────────────────┐
+│ Step 7: Testing & Validation         │
+│ ├─ Write unit tests                  │
+│ ├─ Test endpoints via Swagger        │
+│ ├─ Check database entries            │
+│ └─ Verify response format            │
+└──────────────────────────────────────┘
+   ↓
+┌──────────────────────────────────────┐
+│ Step 8: Code Review                  │
+│ ├─ Commit changes                    │
+│ ├─ Push to remote                    │
+│ ├─ Create Pull Request               │
+│ └─ Address feedback                  │
+└──────────────────────────────────────┘
+   ↓
+┌──────────────────────────────────────┐
+│ Step 9: Merge & Deploy               │
+│ ├─ Merge to main branch              │
+│ ├─ Deploy to staging                 │
+│ ├─ Deploy to production              │
+│ └─ Monitor logs                      │
+└──────────────────────────────────────┘
+```
+
+---
+
+## 10. Data Transformation Pipeline
+
+```
+HTTP Request JSON
+   ↓ (JSON Deserialization)
+┌──────────────────────────────────────┐
+│ CreateOrderDto                       │
+│ {                                    │
+│   restaurantId: "rest-123"           │
+│   revenueCenterId: "rc-456"          │
+│   items: [...]                       │
+│ }                                    │
+└──────────────────────────────────────┘
+   ↓ (AutoMapper Mapping)
+┌──────────────────────────────────────┐
+│ Order Entity                         │
+│ {                                    │
+│   Id: "ord-789" (generated)          │
+│   RestaurantId: "rest-123"           │
+│   RevenueCenterId: "rc-456"          │
+│   CreatedAt: DateTime.Now            │
+│   Items: [...]                       │
+│ }                                    │
+└──────────────────────────────────────┘
+   ↓ (EF Core Tracking)
+┌──────────────────────────────────────┐
+│ DbContext                            │
+│ ChangeTracker tracks entity          │
+│ State: Added                         │
+└──────────────────────────────────────┘
+   ↓ (SaveChangesAsync)
+┌──────────────────────────────────────┐
+│ SQL Generated & Executed             │
+│ INSERT INTO orders (...)             │
+│ VALUES (...)                         │
+│ RETURNING *                          │
+└──────────────────────────────────────┘
+   ↓ (PostgreSQL)
+┌──────────────────────────────────────┐
+│ Database Updated                     │
+│ New row inserted                     │
+│ Row returned from database           │
+└──────────────────────────────────────┘
+   ↓ (Entity returned to service)
+┌──────────────────────────────────────┐
+│ Order Entity                         │
+│ (With all DB-generated values)       │
+└──────────────────────────────────────┘
+   ↓ (AutoMapper Mapping)
+┌──────────────────────────────────────┐
+│ OrderDto                             │
+│ {                                    │
+│   id: "ord-789"                      │
+│   orderNumber: "ORD-20260202-001"    │
+│   total: 50000                       │
+│   status: "created"                  │
+│ }                                    │
+└──────────────────────────────────────┘
+   ↓ (Wrapped in GlobalResponse<T>)
+┌──────────────────────────────────────┐
+│ GlobalResponse<OrderDto>             │
+│ {                                    │
+│   success: true                      │
+│   data: {...}                        │
+│   errors: []                         │
+│ }                                    │
+└──────────────────────────────────────┘
+   ↓ (JSON Serialization)
+HTTP Response JSON
+```
+
+---
+
+## 11. Multiple Service Access Pattern
+
+```
+Controller receives request
+   ↓
+Inject IServiceManager
+   ↓
+Access Services via ServiceManager:
+
+_service.OrderService.GetOrder()
+   └─→ Gets OrderService from ServiceManager
+       └─→ Lazy<IOrderService> creates instance on first access
+
+_service.ItemService.GetItem()
+   └─→ Gets ItemService from ServiceManager
+       └─→ Lazy<IItemService> creates instance on first access
+
+_service.PaymentService.ProcessPayment()
+   └─→ Gets PaymentService from ServiceManager
+       └─→ Lazy<IPaymentService> creates instance on first access
+
+Benefits:
+• Single dependency injection instead of 50+
+• Services created only when needed (Lazy)
+• Memory efficient
+• Easy to access all services
+```
+
+---
+
+## 12. Controller Action Pattern
+
+```
+[HttpPost("create")]                    ← HTTP method and route
+[Authorize(Roles = "Admin")]            ← Authorization requirement
+public async Task<IActionResult> CreateOrder(
+    [FromBody] CreateOrderDto dto       ← Request body binding
+)
+{
+    // Validate input
+    if (!ModelState.IsValid)
+        return BadRequest(
+            ResponseBuilder.BuildResponse(
+                ModelState, 
+                null
+            )
+        );
+    
+    // Call service
+    var result = await _service.OrderService.CreateOrder(dto);
+    
+    // Check result
+    if (!result.IsSuccess)
+        return BadRequest(
+            ResponseBuilder.BuildResponse(null, result)
+        );
+    
+    // Return success
+    return CreatedAtAction(
+        nameof(GetOrder),                ← Redirect to GET endpoint
+        new { id = result.Data.Id },
+        ResponseBuilder.BuildResponse(null, result.Data)
+    );
+}
+```
+
+---
+
+## 13. Payment Integration Flow
+
+```
+Order Ready for Payment
+   ↓
+┌──────────────────────────────────────┐
+│ OrderController.ProcessPayment()     │
+│ POST /api/v1/order/{id}/payment      │
+└──────────────────────────────────────┘
+   ↓
+┌──────────────────────────────────────┐
+│ OrderService.ProcessPayment()        │
+│ • Validate order exists              │
+│ • Check payment amount               │
+│ • Determine payment gateway          │
+└──────────────────────────────────────┘
+   ↓
+┌──────────────────────────────────────┐
+│ Route to Payment Gateway             │
+│                                      │
+│ if (paymentMethod == "flutterwave")  │
+│   → FlutterwaveService.Pay()         │
+│ else if (paymentMethod == "paystack")│
+│   → PayStackService.Pay()            │
+│ else if (paymentMethod == "wema")    │
+│   → WemaService.Pay()                │
+└──────────────────────────────────────┘
+   ↓
+┌──────────────────────────────────────┐
+│ Payment Gateway Processing           │
+│ ├─ External API call                 │
+│ ├─ Return transaction reference      │
+│ └─ Webhook callback on completion    │
+└──────────────────────────────────────┘
+   ↓ (Successful?)
+   ├─→ NO → Update order status: PAYMENT_FAILED
+   │       Return error response
+   │
+   ↓ (YES)
+┌──────────────────────────────────────┐
+│ Update Order Status                  │
+│ • Status: PAID                       │
+│ • Add transaction details            │
+│ • Create financial record            │
+└──────────────────────────────────────┘
+   ↓
+┌──────────────────────────────────────┐
+│ Send Notifications                   │
+│ • Email receipt                      │
+│ • SMS confirmation                   │
+│ • WhatsApp message                   │
+└──────────────────────────────────────┘
+   ↓
+Return Payment Success Response
+```
+
+---
+
+These diagrams provide a complete visual understanding of how the FoodEase API is structured, processes requests, and manages data flows.
