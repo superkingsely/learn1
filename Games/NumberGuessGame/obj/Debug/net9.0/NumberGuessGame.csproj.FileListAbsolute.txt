@@ -1,0 +1,14 @@
+c:\Users\LENOVO\Desktop\my work\Games\NumberGuessGame\bin\Debug\net9.0\NumberGuessGame.exe
+C:\Users\LENOVO\Desktop\my work\Games\NumberGuessGame\bin\Debug\net9.0\NumberGuessGame.deps.json
+C:\Users\LENOVO\Desktop\my work\Games\NumberGuessGame\bin\Debug\net9.0\NumberGuessGame.runtimeconfig.json
+c:\Users\LENOVO\Desktop\my work\Games\NumberGuessGame\bin\Debug\net9.0\NumberGuessGame.dll
+c:\Users\LENOVO\Desktop\my work\Games\NumberGuessGame\bin\Debug\net9.0\NumberGuessGame.pdb
+c:\Users\LENOVO\Desktop\my work\Games\NumberGuessGame\obj\Debug\net9.0\NumberGuessGame.GeneratedMSBuildEditorConfig.editorconfig
+c:\Users\LENOVO\Desktop\my work\Games\NumberGuessGame\obj\Debug\net9.0\NumberGuessGame.AssemblyInfoInputs.cache
+c:\Users\LENOVO\Desktop\my work\Games\NumberGuessGame\obj\Debug\net9.0\NumberGuessGame.AssemblyInfo.cs
+c:\Users\LENOVO\Desktop\my work\Games\NumberGuessGame\obj\Debug\net9.0\NumberGuessGame.csproj.CoreCompileInputs.cache
+c:\Users\LENOVO\Desktop\my work\Games\NumberGuessGame\obj\Debug\net9.0\NumberGuessGame.dll
+c:\Users\LENOVO\Desktop\my work\Games\NumberGuessGame\obj\Debug\net9.0\refint\NumberGuessGame.dll
+c:\Users\LENOVO\Desktop\my work\Games\NumberGuessGame\obj\Debug\net9.0\NumberGuessGame.pdb
+C:\Users\LENOVO\Desktop\my work\Games\NumberGuessGame\obj\Debug\net9.0\NumberGuessGame.genruntimeconfig.cache
+C:\Users\LENOVO\Desktop\my work\Games\NumberGuessGame\obj\Debug\net9.0\ref\NumberGuessGame.dll
