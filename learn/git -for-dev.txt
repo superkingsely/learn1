@@ -1,0 +1,27 @@
+local switch to remote branch
+
+# Method 1: Creates local branch tracking remote
+git checkout -b <local-branch-name> origin/<remote-branch-name>
+
+# Method 2: Shorthand (if local branch name matches remote)
+git checkout --track origin/<remote-branch-name>
+
+##############################################################
+Option 1: Create Branch FROM the Existing Commit
+# Create branch from existing commit
+git branch feature/component-sales-report-add-date f7d9289
+
+# Switch to the new branch
+git checkout feature/component-sales-report-add-date
+
+# Push to remote
+git push origin feature/component-sales-report-add-date
+##################################################################
+How to Completely Remove the Last Commit (No History)
+Run these commands in your terminal:
+
+# 1. Go back to the commit BEFORE the last one
+git reset --hard HEAD~1
+
+# 2. Push to remote (this OVERWRITES history - be careful!)
+git push origin --force

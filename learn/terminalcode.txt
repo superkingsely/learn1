@@ -16,3 +16,10 @@ dotnet new sln -n MyProjectName
 dotnet sln add consoleapp.csproj
 ###############################################
 npx create-next-app@latest --typescript
+################################################
+bash 
+mkdir <foldername> for just one level foldername
+mkdir -p <foldername>/<subfoldername> for multiple nexted folders
+############################################
+for scalfolding
+dotnet tool install -g dotnet-aspnet-codegenerator
