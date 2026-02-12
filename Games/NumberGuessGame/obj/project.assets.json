@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\LENOVO\\Desktop\\my work\\Games\\NumberGuessGame\\NumberGuessGame.csproj",
+      "projectUniqueName": "C:\\Users\\LENOVO\\Desktop\\my work\\learn1\\Games\\NumberGuessGame\\NumberGuessGame.csproj",
       "projectName": "NumberGuessGame",
-      "projectPath": "C:\\Users\\LENOVO\\Desktop\\my work\\Games\\NumberGuessGame\\NumberGuessGame.csproj",
+      "projectPath": "C:\\Users\\LENOVO\\Desktop\\my work\\learn1\\Games\\NumberGuessGame\\NumberGuessGame.csproj",
       "packagesPath": "C:\\Users\\LENOVO\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\LENOVO\\Desktop\\my work\\Games\\NumberGuessGame\\obj\\",
+      "outputPath": "C:\\Users\\LENOVO\\Desktop\\my work\\learn1\\Games\\NumberGuessGame\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\LENOVO\\AppData\\Roaming\\NuGet\\NuGet.Config"
