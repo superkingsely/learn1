@@ -25,3 +25,9 @@ git reset --hard HEAD~1
 
 # 2. Push to remote (this OVERWRITES history - be careful!)
 git push origin --force
+#########################################################
+to stash a change
+git stash save "message" to create stash
+git stash list to view all stash
+git stash drop --help
+

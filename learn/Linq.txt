@@ -1,0 +1,1 @@
+.Where(l=>l.FullName.ToUpper().StartsWith("J"))
