@@ -1,6 +1,9 @@
 
 
+git config --global user.name "superkingsely" 
+git config --global user.email "superkingsely@gmail.com"
 
+###################################
 private_key.pem
 public_key.pem
 
