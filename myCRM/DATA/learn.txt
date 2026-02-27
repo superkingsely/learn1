@@ -1,0 +1,5 @@
+dotnet tool install --global dotnet-ef
+------------------------------------------
+at sln root folder
+dotnet ef migrations add init --project DATA/DATA.csproj --startup-project API/API.csproj
+dotnet ef database update --project DATA/DATA.csproj --startup-project API/API.csproj
