@@ -47,14 +47,31 @@ public class AuthService : IAuthService
         {
             return ResponseModel<bool>.Failure("Passwords do not match");
         }
-        var newuser= new AppUser
+             var existingUser = await _userManager.FindByEmailAsync(model.Email);
+
+        if (existingUser != null)
         {
-            Email=model.Email,
-            PasswordHash=model.Password
-            
-        };
-        var res=await _userManager.CreateAsync();
-        return res.successful?Ok()://throw error
+            return ResponseModel<bool>.Failure("Email already exists");
+        }
+         var newUser = new AppUser
+    {
+        UserName = model.Email, // IMPORTANT
+        Email = model.Email,
+        Gender = model.Gender,
+        DateOfBirth = model.DateOfBirth,
+        ImageName = model.ImageName
+    };
+
+         var result = await _userManager.CreateAsync(newUser, model.Password);
+
+    if (!result.Succeeded)
+    {
+        return ResponseModel<bool>.Failure(
+            string.Join(", ", result.Errors.Select(e => e.Description)));
+    }
+
+    return ResponseModel<bool>.Success(true);
+
     }
 
     public Task<bool> ResetPasswordAsync(ApplicationUserRegisterInputModel model)
