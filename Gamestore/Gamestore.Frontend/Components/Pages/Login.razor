@@ -1,0 +1,53 @@
+﻿@page "/login"
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Web
+
+<PageTitle>Login</PageTitle>
+
+<EditForm Model="user" OnValidSubmit="handlesubmit" >
+    <DataAnnotationsValidator/>
+  <div class="mb-3">
+    <label for="user" class="form-label">Username</label>
+    <InputText @bind-Value="user.username" type="text" class="form-control" id="user" />
+    <ValidationMessage class="text-danger" For="@(()=>user.username)" />
+  </div>
+  <div class="mb-3">
+    <label for="exampleInputPassword1" class="form-label">Password</label>
+    <InputText @bind-Value="user.password" type="password" class="form-control" id="exampleInputPassword1"/>
+    <ValidationMessage class="text-danger" For="@(()=>user.password)"/>
+  </div>
+  
+  <button type="submit" class="btn btn-primary">Submit</button>
+</EditForm>
+
+@if(!string.IsNullOrEmpty(@message)){
+    
+    <p class="@messageType">@message</p>
+}
+
+@code {
+    
+    private User user=new();
+
+    private string message ="";
+    private string messageType ="";
+
+    private void handlesubmit(){
+        if(user.username=="admin" && user.password=="1234"){
+            message="successfully login ";
+            messageType="text-success";
+            user=new();
+        }else{
+             message="invalid";
+            messageType="text-danger";
+        }
+    }
+
+    public class User{
+        [Required(ErrorMessage ="pls value needed")]
+        public string? username {get;set;}
+        [Required(ErrorMessage ="password value needed")]
+        public string? password {get;set;}
+    }
+
+}

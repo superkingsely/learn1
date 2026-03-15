@@ -12,15 +12,17 @@ namespace API.Controllers.Identity
     public class AuthuticationController : ControllerBase
     {
         private readonly IAuthService _authService;
-        public AuthuticationController(IAuthService authService)
+        private readonly SignInManager<AppUser> _signInManager;
+        public AuthuticationController(IAuthService authService ,SignInManager<AppUser> signInManager)
         {
             _authService=authService;
+            _signInManager=signInManager;
         }
        [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] ApplicationUserLoginInputModel model)
         {
-            var response = await _authService.LoginAsync(model);
-            return response.IsSuccess ? Ok() : BadRequest(response);
+            // var response = await _authService.LoginAsync(model);
+            // return response.IsSuccess ? Ok() : BadRequest(response);
         }
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] ApplicationUserRegisterInputModel model)

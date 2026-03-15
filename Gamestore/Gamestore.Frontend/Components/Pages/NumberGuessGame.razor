@@ -1,0 +1,131 @@
+﻿@page "/number-guess-game"
+
+<div class="numberguessgame">
+    <h5>Number guess game</h5>
+    <div class="@(isstart?"start":"stop")">
+        <span>pls guess a number :</span> <input @bind="userinput" @bind:event="oninput" type="number"  >
+    </div>
+    @if(!string.IsNullOrEmpty(@userinput)){
+
+    <button class="btnp @(iscorrect?"correct":"wrong") ">too low</button>
+    }
+    <div class="@(wantToplay?"visible":"notvisible")">
+     <span>Do you want to play again</span> 
+     <button @onclick='()=>Handlesub("yes")' class="btna" >Yes</button>
+     <button @onclick='()=>Handlesub("no")' class="btna" >No</button>
+    </div>
+    <button class="st" @onclick="Handlesubmit" >@(isbtnclick?"Running":"Start Game")</button>
+</div>
+
+
+@code {
+    private string userinput="";
+    private bool iscorrect=false;
+    private bool isstart=false;
+    private bool isbtnclick=false;
+
+    @* play again *@
+        private bool wantToplay=false;
+        private string? playanswer;
+    Random gennum=new ();
+    private void Handlesub(string ans){
+
+        playanswer=ans;
+    }
+    private void Handlesubmit(){
+        Playgame();
+        isbtnclick=!isbtnclick;
+        isstart=!isstart;
+    }
+
+    public void Playgame()
+    {
+        Console.WriteLine("game running");
+        bool isplagame=true;
+        while(isplagame){
+            Play();
+            isplagame=Playagain();
+        }
+    }
+    bool Playagain(){
+        wantToplay=true;
+        bool res=true;
+        while(wantToplay){
+            if(playanswer=="no"){
+                wantToplay=false;
+                res=false;
+                return false;
+            }else{
+                wantToplay=false;
+                res=true;
+                return true;
+            }
+        }
+
+        return res;
+
+    }
+    void Play(){
+        @* play game *@
+        var rand=gennum.Next(1,100);
+        
+    }
+    
+    public class Game{
+
+    }
+
+
+}
+
+<style>
+    .numberguessgame{
+        background-color: rgb(244, 237, 237);
+        min-height: 300px;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 20px;
+
+    }
+    .btnp{
+        width: 300px;
+        margin-top: 10px;
+    }
+    .btnp.wrong{
+        background-color: red;
+        color: white;
+        font-weight: 700;
+    }
+    .btnp.correct{
+        background-color: rgb(29, 241, 188);
+        color: white;
+        font-weight: 700;
+    }
+    button.st{
+        width:300px;
+        margin-top: 200px;
+
+    }
+    .stop{
+        opacity: 0;
+        transition: all 2s;
+    }
+    .start{
+        opacity: 1;
+        transition: all 2s;
+    }
+    .visible{
+        opacity: 1;
+        transition: all 2s;
+    }
+    .notvisible{
+        opacity: 0;
+        transition: all 2s;
+    }
+    .btna{
+        width: 50px;
+        padding: 5px;
+        margin-left: 3px;
+    }
+</style>

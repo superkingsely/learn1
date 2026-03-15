@@ -1,0 +1,13 @@
+﻿@page "/test"
+@* @rendermode InteractiveServer *@
+
+<h3>Test Page</h3>
+
+<input @bind-value="username" @bind-value:event="oninput" />
+
+<b>u typed @username less see</b>
+
+@code{
+    private string username = "";
+   
+}

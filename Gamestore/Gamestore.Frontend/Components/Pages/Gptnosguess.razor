@@ -1,0 +1,90 @@
+﻿@page "/gpt-nos"
+
+<div class="numberguessgame">
+    <h5>Number Guess Game</h5>
+
+    <div class="@(isstart ? "start" : "stop")">
+        <span>Please guess a number:</span>
+        <input @bind="userinput" @bind:event="oninput" type="number">
+    </div>
+
+    @if (!string.IsNullOrEmpty(userinput))
+    {
+        <button class="btnp @(iscorrect ? "correct" : "wrong")" @onclick="CheckGuess">
+            Check Guess
+        </button>
+    }
+
+    <p>@message</p>
+
+    <div class="@(wantToplay ? "visible" : "notvisible")">
+        <span>Do you want to play again?</span>
+
+        <button @onclick='() => HandlePlayAgain("yes")' class="btna">Yes</button>
+        <button @onclick='() => HandlePlayAgain("no")' class="btna">No</button>
+    </div>
+
+    <button class="st" @onclick="StartGame">
+        @(isbtnclick ? "Running" : "Start Game")
+    </button>
+</div>
+
+@code {
+
+    private string userinput = "";
+    private bool iscorrect = false;
+    private bool isstart = false;
+    private bool isbtnclick = false;
+    private bool wantToplay = false;
+
+    private int randomNumber;
+    private string message = "";
+
+    Random gennum = new();
+
+    void StartGame()
+    {
+        randomNumber = gennum.Next(1, 100);
+        isstart = true;
+        isbtnclick = true;
+        message = "";
+        userinput = "";
+        wantToplay = false;
+    }
+
+    void CheckGuess()
+    {
+        int guess = int.Parse(userinput);
+
+        if (guess == randomNumber)
+        {
+            iscorrect = true;
+            message = "🎉 Correct!";
+            wantToplay = true;
+        }
+        else if (guess < randomNumber)
+        {
+            iscorrect = false;
+            message = "Too Low";
+        }
+        else
+        {
+            iscorrect = false;
+            message = "Too High";
+        }
+    }
+
+    void HandlePlayAgain(string ans)
+    {
+        if (ans == "yes")
+        {
+            StartGame();
+        }
+        else
+        {
+            isstart = false;
+            isbtnclick = false;
+            message = "Game Over";
+        }
+    }
+}
