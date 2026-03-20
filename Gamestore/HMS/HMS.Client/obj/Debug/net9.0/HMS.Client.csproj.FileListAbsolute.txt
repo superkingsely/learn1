@@ -201,8 +201,6 @@ C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\bin\
 C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\bin\Debug\net9.0\wwwroot\_framework\icudt_CJK.tjcz0u77k5.dat
 C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\bin\Debug\net9.0\wwwroot\_framework\icudt_EFIGS.tptq2av103.dat
 C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\bin\Debug\net9.0\wwwroot\_framework\icudt_no_CJK.lfu7j35m59.dat
-C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\bin\Debug\net9.0\wwwroot\_framework\HMS.Client.xsjns22zix.wasm
-C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\bin\Debug\net9.0\wwwroot\_framework\HMS.Client.4jj3xmw81e.pdb
 C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\bin\Debug\net9.0\wwwroot\_framework\blazor.boot.json
 C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\bin\Debug\net9.0\wwwroot\_framework\blazor.webassembly.js.gz
 C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\bin\Debug\net9.0\wwwroot\_framework\Microsoft.AspNetCore.Authorization.9taw8vfmpb.wasm.gz
@@ -407,8 +405,6 @@ C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\bin\
 C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\bin\Debug\net9.0\wwwroot\_framework\icudt_CJK.tjcz0u77k5.dat.gz
 C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\bin\Debug\net9.0\wwwroot\_framework\icudt_EFIGS.tptq2av103.dat.gz
 C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\bin\Debug\net9.0\wwwroot\_framework\icudt_no_CJK.lfu7j35m59.dat.gz
-C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\bin\Debug\net9.0\wwwroot\_framework\HMS.Client.xsjns22zix.wasm.gz
-C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\bin\Debug\net9.0\wwwroot\_framework\HMS.Client.4jj3xmw81e.pdb.gz
 C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\bin\Debug\net9.0\wwwroot\_framework\blazor.boot.json.gz
 C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\bin\Debug\net9.0\HMS.Client.staticwebassets.runtime.json
 C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\bin\Debug\net9.0\HMS.Client.staticwebassets.endpoints.json
@@ -1030,9 +1026,6 @@ C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\obj\
 C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\obj\Debug\net9.0\compressed\d0kb4inwei-tjcz0u77k5.gz
 C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\obj\Debug\net9.0\compressed\m44aiqhqpb-tptq2av103.gz
 C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\obj\Debug\net9.0\compressed\wh7ne5s7i4-lfu7j35m59.gz
-C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\obj\Debug\net9.0\compressed\d1pdnml47s-xsjns22zix.gz
-C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\obj\Debug\net9.0\compressed\zswzhb42a6-4jj3xmw81e.gz
-C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\obj\Debug\net9.0\compressed\03xafuj50d-y2u2prvdgd.gz
 C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\obj\Debug\net9.0\staticwebassets.build.json
 C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\obj\Debug\net9.0\staticwebassets.build.json.cache
 C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\obj\Debug\net9.0\staticwebassets.development.json
@@ -1042,3 +1035,10 @@ C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\obj\
 C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\obj\Debug\net9.0\refint\HMS.Client.dll
 C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\obj\Debug\net9.0\HMS.Client.pdb
 C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\obj\Debug\net9.0\ref\HMS.Client.dll
+C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\bin\Debug\net9.0\wwwroot\_framework\HMS.Client.2xeg1sl6di.wasm
+C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\bin\Debug\net9.0\wwwroot\_framework\HMS.Client.u4dbnedwbu.pdb
+C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\bin\Debug\net9.0\wwwroot\_framework\HMS.Client.2xeg1sl6di.wasm.gz
+C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\bin\Debug\net9.0\wwwroot\_framework\HMS.Client.u4dbnedwbu.pdb.gz
+C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\obj\Debug\net9.0\compressed\d1pdnml47s-2xeg1sl6di.gz
+C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\obj\Debug\net9.0\compressed\zswzhb42a6-u4dbnedwbu.gz
+C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\obj\Debug\net9.0\compressed\03xafuj50d-8emih0zhzd.gz
