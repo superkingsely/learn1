@@ -1,0 +1,60 @@
+﻿@using Gamestore.Frontend.Clients
+@* @page "/delete" *@
+
+@inject GamesClient GamesClient
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<!-- Button trigger modal -->
+@* <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+  Launch demo modal
+</button> *@
+
+<!-- Modal -->
+<div class="modal fade" id="@GetModalId(Game)" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">@title</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+     
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cancel</button>
+        <button @onclick="@Confirm" type="button" class="btn btn-danger" data-bs-dismiss="modal" >Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public GameSummary? Game{get;set;}
+
+    @* read *@
+    private string title="";
+    protected override void OnParametersSet()
+    {
+       title=$"Delete {Game?.Name}?";
+    }
+
+    public static string GetModalId(GameSummary game){
+        return $"deleteModal-{game.Id}";
+    }
+@* ------------------------------------ *@
+    @* injected here *@
+    @* private GameSummary[]? games {get;set;} *@
+    [Parameter]
+    public EventCallback<int> OnDelete { get; set; }
+    private async Task  Confirm(){
+        @* delete the actul arry *@
+        GamesClient.DeleteGame(Game!.Id); 
+        await OnDelete.InvokeAsync(Game!.Id);
+        
+        @* fail to update parent ui *@
+        @* GamesClient.GetGames().ToArray(); *@
+        @* NavigationManager.Refresh(); *@
+    }
+
+}

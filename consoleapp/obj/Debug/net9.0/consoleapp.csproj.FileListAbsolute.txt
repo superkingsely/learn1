@@ -13,3 +13,18 @@ c:\Users\USER\Desktop\my-work\learn\consoleapp\obj\Debug\net9.0\refint\consoleap
 c:\Users\USER\Desktop\my-work\learn\consoleapp\obj\Debug\net9.0\consoleapp.pdb
 c:\Users\USER\Desktop\my-work\learn\consoleapp\obj\Debug\net9.0\consoleapp.genruntimeconfig.cache
 c:\Users\USER\Desktop\my-work\learn\consoleapp\obj\Debug\net9.0\ref\consoleapp.dll
+c:\Users\Fusion Inteligence\Desktop\my-work\learn1\consoleapp\bin\Debug\net9.0\consoleapp.exe
+c:\Users\Fusion Inteligence\Desktop\my-work\learn1\consoleapp\bin\Debug\net9.0\consoleapp.deps.json
+c:\Users\Fusion Inteligence\Desktop\my-work\learn1\consoleapp\bin\Debug\net9.0\consoleapp.runtimeconfig.json
+c:\Users\Fusion Inteligence\Desktop\my-work\learn1\consoleapp\bin\Debug\net9.0\consoleapp.dll
+c:\Users\Fusion Inteligence\Desktop\my-work\learn1\consoleapp\bin\Debug\net9.0\consoleapp.pdb
+c:\Users\Fusion Inteligence\Desktop\my-work\learn1\consoleapp\obj\Debug\net9.0\consoleapp.GeneratedMSBuildEditorConfig.editorconfig
+c:\Users\Fusion Inteligence\Desktop\my-work\learn1\consoleapp\obj\Debug\net9.0\consoleapp.AssemblyInfoInputs.cache
+c:\Users\Fusion Inteligence\Desktop\my-work\learn1\consoleapp\obj\Debug\net9.0\consoleapp.AssemblyInfo.cs
+c:\Users\Fusion Inteligence\Desktop\my-work\learn1\consoleapp\obj\Debug\net9.0\consoleapp.csproj.CoreCompileInputs.cache
+c:\Users\Fusion Inteligence\Desktop\my-work\learn1\consoleapp\obj\Debug\net9.0\consoleapp.sourcelink.json
+c:\Users\Fusion Inteligence\Desktop\my-work\learn1\consoleapp\obj\Debug\net9.0\consoleapp.dll
+c:\Users\Fusion Inteligence\Desktop\my-work\learn1\consoleapp\obj\Debug\net9.0\refint\consoleapp.dll
+c:\Users\Fusion Inteligence\Desktop\my-work\learn1\consoleapp\obj\Debug\net9.0\consoleapp.pdb
+c:\Users\Fusion Inteligence\Desktop\my-work\learn1\consoleapp\obj\Debug\net9.0\consoleapp.genruntimeconfig.cache
+c:\Users\Fusion Inteligence\Desktop\my-work\learn1\consoleapp\obj\Debug\net9.0\ref\consoleapp.dll

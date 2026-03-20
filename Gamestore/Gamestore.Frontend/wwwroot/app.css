@@ -23,6 +23,14 @@ header{
     padding-top: 50px;
 }
 
+input.valid.modified {
+    border-color: #198754;
+}
+
+input.invalid.modified {
+    border-color: #dc3545;
+}
+
 
 
 

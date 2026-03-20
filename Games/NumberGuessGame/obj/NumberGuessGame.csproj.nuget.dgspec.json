@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\LENOVO\\Desktop\\my work\\learn1\\Games\\NumberGuessGame\\NumberGuessGame.csproj": {}
+    "C:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\Games\\NumberGuessGame\\NumberGuessGame.csproj": {}
   },
   "projects": {
-    "C:\\Users\\LENOVO\\Desktop\\my work\\learn1\\Games\\NumberGuessGame\\NumberGuessGame.csproj": {
+    "C:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\Games\\NumberGuessGame\\NumberGuessGame.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\LENOVO\\Desktop\\my work\\learn1\\Games\\NumberGuessGame\\NumberGuessGame.csproj",
+        "projectUniqueName": "C:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\Games\\NumberGuessGame\\NumberGuessGame.csproj",
         "projectName": "NumberGuessGame",
-        "projectPath": "C:\\Users\\LENOVO\\Desktop\\my work\\learn1\\Games\\NumberGuessGame\\NumberGuessGame.csproj",
-        "packagesPath": "C:\\Users\\LENOVO\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\LENOVO\\Desktop\\my work\\learn1\\Games\\NumberGuessGame\\obj\\",
+        "projectPath": "C:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\Games\\NumberGuessGame\\NumberGuessGame.csproj",
+        "packagesPath": "C:\\Users\\Fusion Inteligence\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\Games\\NumberGuessGame\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\LENOVO\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\Fusion Inteligence\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
@@ -59,7 +59,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.310/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.311/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
