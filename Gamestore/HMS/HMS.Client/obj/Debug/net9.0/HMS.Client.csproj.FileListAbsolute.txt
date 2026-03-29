@@ -1035,10 +1035,10 @@ C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\obj\
 C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\obj\Debug\net9.0\refint\HMS.Client.dll
 C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\obj\Debug\net9.0\HMS.Client.pdb
 C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\obj\Debug\net9.0\ref\HMS.Client.dll
-C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\bin\Debug\net9.0\wwwroot\_framework\HMS.Client.2xeg1sl6di.wasm
-C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\bin\Debug\net9.0\wwwroot\_framework\HMS.Client.u4dbnedwbu.pdb
-C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\bin\Debug\net9.0\wwwroot\_framework\HMS.Client.2xeg1sl6di.wasm.gz
-C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\bin\Debug\net9.0\wwwroot\_framework\HMS.Client.u4dbnedwbu.pdb.gz
-C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\obj\Debug\net9.0\compressed\d1pdnml47s-2xeg1sl6di.gz
-C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\obj\Debug\net9.0\compressed\zswzhb42a6-u4dbnedwbu.gz
-C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\obj\Debug\net9.0\compressed\03xafuj50d-8emih0zhzd.gz
+C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\bin\Debug\net9.0\wwwroot\_framework\HMS.Client.jh9yl0mfkv.wasm
+C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\bin\Debug\net9.0\wwwroot\_framework\HMS.Client.hhbutjookk.pdb
+C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\bin\Debug\net9.0\wwwroot\_framework\HMS.Client.jh9yl0mfkv.wasm.gz
+C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\bin\Debug\net9.0\wwwroot\_framework\HMS.Client.hhbutjookk.pdb.gz
+C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\obj\Debug\net9.0\compressed\d1pdnml47s-jh9yl0mfkv.gz
+C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\obj\Debug\net9.0\compressed\zswzhb42a6-hhbutjookk.gz
+C:\Users\Fusion Inteligence\Desktop\my-work\learn1\Gamestore\HMS\HMS.Client\obj\Debug\net9.0\compressed\03xafuj50d-6q7gkgekvj.gz
