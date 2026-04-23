@@ -3,6 +3,7 @@
 @using System.ComponentModel.DataAnnotations
 @using System.Text
 @using System.Text.Encodings.Web
+@using HMS.Models
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using HMS.Data
@@ -20,38 +21,88 @@
 <h1>Register</h1>
 
 <div class="row">
-    <div class="col-lg-6">
+    <div class="col-lg-12">
         <StatusMessage Message="@Message" />
         <EditForm Model="Input" asp-route-returnUrl="@ReturnUrl" method="post" OnValidSubmit="RegisterUser" FormName="register">
             <DataAnnotationsValidator />
             <h2>Create a new account.</h2>
             <hr />
-            <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                <label for="Input.Email">Email</label>
-                <ValidationMessage For="() => Input.Email" class="text-danger" />
-            </div>
-            <div class="form-floating mb-3">
-                <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label for="Input.Password">Password</label>
-                <ValidationMessage For="() => Input.Password" class="text-danger" />
-            </div>
-            <div class="form-floating mb-3">
-                <InputText type="password" @bind-Value="Input.ConfirmPassword" id="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label for="Input.ConfirmPassword">Confirm Password</label>
-                <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
-            </div>
+                <div class="row">
+                 <ValidationSummary class="text-danger" role="alert" />
+                 <div class="col-lg-6">
+                         <div class="form-floating mb-3">
+                            <InputText @bind-Value="Input.FirstName" id="Input.FirstName" class="form-control" autocomplete="FirstName" aria-required="true"  />
+                            <label for="Input.FirstName">FirstName</label>
+                            <ValidationMessage For="() => Input.FirstName" class="text-danger" />
+                        </div>
+                        <div class="form-floating mb-3">
+                            <InputText @bind-Value="Input.LastName" id="Input.LastName" class="form-control" autocomplete="LastName" aria-required="true"  />
+                            <label for="Input.LastName">LastName</label>
+                            <ValidationMessage For="() => Input.LastName" class="text-danger" />
+                        </div>
+                        <div class="form-floating mb-3">
+                            <InputText @bind-Value="Input.NationalIdNumber" id="Input.NationalIdNumber" class="form-control" autocomplete="NationalIdNumber" aria-required="true"  />
+                            <label for="Input.NationalIdNumber">NationalIdNumber</label>
+                            <ValidationMessage For="() => Input.NationalIdNumber" class="text-danger" />
+                        </div>
+                                 <div class="form-floating mb-3">
+                            <InputText @bind-Value="Input.Address" id="Input.Address" class="form-control" autocomplete="Address" aria-required="true"  />
+                            <label for="Input.Address">Address</label>
+                            <ValidationMessage For="() => Input.Address" class="text-danger" />
+                            </div>
+                            <div class="form-floating mb-3">
+                                <InputText @bind-Value="Input.MotherName" id="Input.MotherName" class="form-control" autocomplete="MotherName" aria-required="true"  />
+                                <label for="Input.MotherName">MotherName</label>
+                                <ValidationMessage For="() => Input.MotherName" class="text-danger" />
+                            </div>
+                            <div class="form-floating mb-3">
+                                <InputDate @bind-Value="Input.DateOfBirth" id="Input.DateOfBirth" class="form-control" autocomplete="DateOfBirth" aria-required="true"  />
+                                <label for="Input.DateOfBirth">DateOfBirth</label>
+                                <ValidationMessage For="() => Input.DateOfBirth" class="text-danger" />
+                            </div>
+                 </div>
+                 <div class="col-lg-6">
+                        <div class="form-floating mb-3">
+                            <InputText @bind-Value="Input.FatherName" id="Input.FatherName" class="form-control" autocomplete="FatherName" aria-required="true"  />
+                            <label for="Input.FatherName">FatherName</label>
+                            <ValidationMessage For="() => Input.FatherName" class="text-danger" />
+                        </div>
+                        <div class="form-floating mb-3">
+                            <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="Email" aria-required="true"  />
+                            <label for="Input.Email">Email</label>
+                            <ValidationMessage For="() => Input.Email" class="text-danger" />
+                        </div>
+                        <div class="form-floating mb-3">
+                            <InputText @bind-Value="Input.EmergencyPhoneNumber" id="Input.EmergencyPhoneNumber" class="form-control" autocomplete="EmergencyPhoneNumber" aria-required="true"  />
+                            <label for="Input.EmergencyPhoneNumber">EmergencyPhoneNumber</label>
+                            <ValidationMessage For="() => Input.EmergencyPhoneNumber" class="text-danger" />
+                        </div>
+                        <div class="form-floating mb-3">
+                            <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
+                            <label for="Input.Password">Password</label>
+                            <ValidationMessage For="() => Input.Password" class="text-danger" />
+                        </div>
+                        <div class="form-floating mb-3">
+                            <InputText type="password" @bind-Value="Input.ConfirmPassword" id="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
+                            <label for="Input.ConfirmPassword">Confirm Password</label>
+                            <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
+                        </div>
+                 </div>
+
+                </div>
+           
+           
+           
             <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
         </EditForm>
     </div>
-    <div class="col-lg-4 col-lg-offset-2">
+    @* <div class="col-lg-4 col-lg-offset-2">
         <section>
             <h3>Use another service to register.</h3>
             <hr />
             <ExternalLoginPicker />
         </section>
-    </div>
+    </div> *@
 </div>
 
 @code {
@@ -67,7 +118,17 @@
 
     public async Task RegisterUser(EditContext editContext)
     {
-        var user = CreateUser();
+        ApplicationUser? user = CreateUser();
+
+        user.Address=Input.Address;
+        user.EmergencyPhoneNumber=Input.EmergencyPhoneNumber;
+        user.FatherName=Input.FatherName;
+        user.FirstName=Input.FirstName;
+        user.DateOfBirth=Input.DateOfBirth;
+        user.LastName=Input.LastName;
+        user.MotherName=Input.MotherName;
+        user.NationalIdNumber=Input.NationalIdNumber;
+
 
         await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
         var emailStore = GetEmailStore();
@@ -141,5 +202,26 @@
         [Display(Name = "Confirm password")]
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; } = "";
+
+        [Display(Name ="First Name")]
+         public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public string Address { get; set; }
+    public string EmergencyPhoneNumber { get; set; }
+    @* [Display(Name ="Date of birth")] *@
+    public DateTime DateOfBirth { get; set; }
+    public string MotherName { get; set; }
+    public string FatherName { get; set; }
+    public string NationalIdNumber { get; set; }
+    public int? GenderId { get; set; }
+    public SystemCodeDetail Gender { get; set; }
+    public int? BloodGroupId { get; set; }
+    public SystemCodeDetail BloodGroup { get; set; }
+    public int? MaritalStatusId { get; set; }
+    public SystemCodeDetail MaritalStatus { get; set; }
+
+
     }
+
+    
 }

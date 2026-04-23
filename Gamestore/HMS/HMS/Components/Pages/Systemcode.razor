@@ -1,0 +1,60 @@
+﻿@page "/systemcodes"
+
+@using HMS.Data
+@using HMS.Models
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Authorization
+
+
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> userManager
+
+@attribute [StreamRendering]
+
+<PageTitle>Systemcodes</PageTitle>
+
+<EditForm Model="SystemCode" OnValidSubmit="CreateNewSystemCode" FormName="systemcode" >
+    <DataAnnotationsValidator/>
+  <div class="mb-3">
+    <label for="systemcodecode" class="form-label">Code</label>
+    <InputText @bind-Value="SystemCode.Code" type="text" class="form-control" id="systemcodecode" aria-describedby="emailHelp"/>
+    <ValidationMessage For="@(()=>SystemCode.Code)"/>
+  </div>
+  <div class="mb-3">
+    <label for="systemcodedescription" class="form-label">Description</label>
+    <InputText @bind-Value="SystemCode.Description" type="text" class="form-control" id="systemcodedescription"/>
+    <ValidationMessage For="@(()=>SystemCode.Description)" />
+  </div>
+
+  <a href="" role="button" class="btn btn-danger " >To List</a>
+
+  <button type="submit" class="btn btn-primary float-end">Save System Code</button>
+</EditForm>
+
+
+@code {
+
+    [SupplyParameterFromForm]
+    public SystemCode SystemCode {get;set;}=new();
+
+    public string UserId {get;set;} 
+    @* private Task<AuthenticationState> authenticationStateTask{get;set;} *@
+
+    protected override async Task OnInitializedAsync()
+    {
+        @* return base.OnInitializedAsync(); *@
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity != null && user.Identity.IsAuthenticated)
+        {
+            UserId = userManager.GetUserId(user); 
+        }
+    }
+
+    protected async Task CreateNewSystemCode(){
+        SystemCode.CreatedOn=DateTime.UtcNow;
+        SystemCode.CreatedById= UserId; 
+        var result=await SystemCodeService.AddSystemCodeAsync(SystemCode);
+    }
+
+}

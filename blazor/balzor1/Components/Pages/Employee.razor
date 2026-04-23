@@ -1,0 +1,13 @@
+﻿@page "/"
+<PageTitle>Employee list</PageTitle>
+
+<MudText Typo="Typo.h3">okay @message </MudText>
+
+@code{
+    private string? message;
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        message="cool!!";
+    }
+}

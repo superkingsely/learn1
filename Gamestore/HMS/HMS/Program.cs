@@ -5,6 +5,8 @@ using HMS.Client.Pages;
 using HMS.Components;
 using HMS.Components.Account;
 using HMS.Data;
+using HMS.Interfaces;
+using HMS.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +20,7 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+builder.Services.AddScoped<ISystemCodeRepository,SystemCodeRepository>();
 
 builder.Services.AddAuthentication(options =>
     {
