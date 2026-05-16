@@ -1,8 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "u11TICDcH4E=",
+  "dgSpecHash": "5gG2jFBlPTA=",
   "success": true,
   "projectFilePath": "C:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\Games\\NumberGuessGame\\NumberGuessGame.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\Fusion Inteligence\\.nuget\\packages\\microsoft.netcore.app.ref\\9.0.14\\microsoft.netcore.app.ref.9.0.14.nupkg.sha512",
+    "C:\\Users\\Fusion Inteligence\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\9.0.14\\microsoft.windowsdesktop.app.ref.9.0.14.nupkg.sha512",
+    "C:\\Users\\Fusion Inteligence\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\9.0.14\\microsoft.aspnetcore.app.ref.9.0.14.nupkg.sha512",
+    "C:\\Users\\Fusion Inteligence\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\9.0.14\\microsoft.netcore.app.host.win-x64.9.0.14.nupkg.sha512"
+  ],
   "logs": []
 }

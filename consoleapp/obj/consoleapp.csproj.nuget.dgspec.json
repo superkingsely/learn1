@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "c:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\consoleapp\\consoleapp.csproj": {}
+    "C:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\consoleapp\\consoleapp.csproj": {}
   },
   "projects": {
-    "c:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\consoleapp\\consoleapp.csproj": {
+    "C:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\consoleapp\\consoleapp.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "c:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\consoleapp\\consoleapp.csproj",
+        "projectUniqueName": "C:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\consoleapp\\consoleapp.csproj",
         "projectName": "consoleapp",
-        "projectPath": "c:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\consoleapp\\consoleapp.csproj",
+        "projectPath": "C:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\consoleapp\\consoleapp.csproj",
         "packagesPath": "C:\\Users\\Fusion Inteligence\\.nuget\\packages\\",
-        "outputPath": "c:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\consoleapp\\obj\\",
+        "outputPath": "C:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\consoleapp\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Fusion Inteligence\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -38,7 +38,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.300"
+        "SdkAnalysisLevel": "10.0.200"
       },
       "frameworks": {
         "net9.0": {
@@ -54,12 +54,30 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[9.0.14, 9.0.14]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Host.win-x64",
+              "version": "[9.0.14, 9.0.14]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[9.0.14, 9.0.14]"
+            },
+            {
+              "name": "Microsoft.WindowsDesktop.App.Ref",
+              "version": "[9.0.14, 9.0.14]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.311/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.201/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

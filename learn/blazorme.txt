@@ -1,0 +1,2 @@
+cli blazor
+dotnet new mudblazor -e -ai -int server

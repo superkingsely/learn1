@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("NumberGuessGame")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1ffcd1bf0824929306f0c8752664edcb40bce8ba")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c7838745e082f304e5a7ba52f1285a3147a2409d")]
 [assembly: System.Reflection.AssemblyProductAttribute("NumberGuessGame")]
 [assembly: System.Reflection.AssemblyTitleAttribute("NumberGuessGame")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

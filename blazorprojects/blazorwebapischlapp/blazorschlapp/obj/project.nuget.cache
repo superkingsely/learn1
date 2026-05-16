@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "Q08XcIuWDlk=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\blazorprojects\\blazorwebapischlapp\\blazorschlapp\\blazorschlapp.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Fusion Inteligence\\.nuget\\packages\\microsoft.aspnetcore.app.internal.assets\\10.0.5\\microsoft.aspnetcore.app.internal.assets.10.0.5.nupkg.sha512"
+  ],
+  "logs": []
+}
