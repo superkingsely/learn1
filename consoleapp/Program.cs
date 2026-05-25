@@ -1,4 +1,5 @@
 ﻿using System;
+using Name;
 
 namespace consoleapp;
 
@@ -8,6 +9,7 @@ public class Program
     {
     //    Program2.App();
         // Times.Cal();
-        FizzBuzz.Cal();
+        // FizzBuzz.Cal();
+        NumberGuess.NumberGuessGame();
     }
 }

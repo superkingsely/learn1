@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "KnpO5VRLPY8=",
+  "dgSpecHash": "Wlwocdt1lnQ=",
   "success": true,
   "projectFilePath": "C:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\Gamestore\\HMS\\HMS\\HMS.csproj",
   "expectedPackageFiles": [
@@ -114,7 +114,21 @@
     "C:\\Users\\Fusion Inteligence\\.nuget\\packages\\system.text.json\\9.0.13\\system.text.json.9.0.13.nupkg.sha512",
     "C:\\Users\\Fusion Inteligence\\.nuget\\packages\\system.threading.channels\\7.0.0\\system.threading.channels.7.0.0.nupkg.sha512",
     "C:\\Users\\Fusion Inteligence\\.nuget\\packages\\system.threading.tasks.extensions\\4.5.4\\system.threading.tasks.extensions.4.5.4.nupkg.sha512",
-    "C:\\Users\\Fusion Inteligence\\.nuget\\packages\\system.windows.extensions\\6.0.0\\system.windows.extensions.6.0.0.nupkg.sha512"
+    "C:\\Users\\Fusion Inteligence\\.nuget\\packages\\system.windows.extensions\\6.0.0\\system.windows.extensions.6.0.0.nupkg.sha512",
+    "C:\\Users\\Fusion Inteligence\\.nuget\\packages\\microsoft.netcore.app.ref\\9.0.14\\microsoft.netcore.app.ref.9.0.14.nupkg.sha512",
+    "C:\\Users\\Fusion Inteligence\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\9.0.14\\microsoft.windowsdesktop.app.ref.9.0.14.nupkg.sha512",
+    "C:\\Users\\Fusion Inteligence\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\9.0.14\\microsoft.aspnetcore.app.ref.9.0.14.nupkg.sha512",
+    "C:\\Users\\Fusion Inteligence\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\9.0.14\\microsoft.netcore.app.host.win-x64.9.0.14.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "NU1900",
+      "level": "Warning",
+      "message": "Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.",
+      "projectPath": "C:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\Gamestore\\HMS\\HMS\\HMS.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\Gamestore\\HMS\\HMS\\HMS.csproj",
+      "targetGraphs": []
+    }
+  ]
 }
