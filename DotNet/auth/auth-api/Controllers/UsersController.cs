@@ -39,21 +39,7 @@ namespace auth_api.Controllers
                 return StatusCode(500, new { Message = $"Error occurred: {ex.Message}" });
             }
         }
-        [HttpPost("create-role")]
-        public IActionResult CreateRole([FromBody] Role role)
-        {
-            try
-            {
-                role.Id = Guid.NewGuid();
-                _context.Roles.Add(role);
-                _context.SaveChanges();
-                return Ok(new { Message = "Role created successfully" });
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { Message = $"Error occurred: {ex.Message}" });
-            }
-        }
+       
         [HttpGet("{id}")]
         public IActionResult GetUser(Guid id)
         {
