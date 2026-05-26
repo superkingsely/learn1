@@ -69,7 +69,7 @@ namespace auth_api.Controllers
         }
 
         [HttpPost("addUserRole")]
-public IActionResult AddUserRole(Guid userId, Guid roleId)
+        public IActionResult AddUserRole(Guid userId, Guid roleId)
 {
     try
     {
