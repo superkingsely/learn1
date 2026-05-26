@@ -79,7 +79,7 @@
           "Microsoft.AspNetCore.App"
         ]
       },
-      "Microsoft.AspNetCore.OpenApi/10.0.5": {
+      "Microsoft.AspNetCore.OpenApi/10.0.8": {
         "type": "package",
         "dependencies": {
           "Microsoft.OpenApi": "2.0.0"
@@ -1277,10 +1277,10 @@
         "microsoft.aspnetcore.authentication.jwtbearer.nuspec"
       ]
     },
-    "Microsoft.AspNetCore.OpenApi/10.0.5": {
-      "sha512": "vTcxIfOPyfFbYk1g8YcXJfkMnlEWVkSnnjxcZLy60zgwiHMRf2SnZR+9E4HlpwKxgE3yfKMOti8J6WfKuKsw6w==",
+    "Microsoft.AspNetCore.OpenApi/10.0.8": {
+      "sha512": "cw24xHE2QaWwyEG9GQwFbjboyabub6Vd80DIItUGENzcQOa/BEnTrXsg2GADqWTmY/3ycqk9ToLGjgvF/VRlGA==",
       "type": "package",
-      "path": "microsoft.aspnetcore.openapi/10.0.5",
+      "path": "microsoft.aspnetcore.openapi/10.0.8",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -1291,7 +1291,7 @@
         "build/Microsoft.AspNetCore.OpenApi.targets",
         "lib/net10.0/Microsoft.AspNetCore.OpenApi.dll",
         "lib/net10.0/Microsoft.AspNetCore.OpenApi.xml",
-        "microsoft.aspnetcore.openapi.10.0.5.nupkg.sha512",
+        "microsoft.aspnetcore.openapi.10.0.8.nupkg.sha512",
         "microsoft.aspnetcore.openapi.nuspec"
       ]
     },
@@ -3638,11 +3638,12 @@
     "net10.0": [
       "BCrypt.Net-Next >= 4.2.0",
       "Microsoft.AspNetCore.Authentication.JwtBearer >= 10.0.8",
-      "Microsoft.AspNetCore.OpenApi >= 10.0.5",
+      "Microsoft.AspNetCore.OpenApi >= 10.0.8",
       "Microsoft.EntityFrameworkCore.Design >= 10.0.8",
       "Microsoft.EntityFrameworkCore.SqlServer >= 10.0.8",
       "Microsoft.EntityFrameworkCore.Tools >= 10.0.8",
-      "Swashbuckle.AspNetCore >= 10.1.7"
+      "Swashbuckle.AspNetCore >= 10.1.7",
+      "Swashbuckle.AspNetCore.SwaggerUI >= 10.1.7"
     ]
   },
   "packageFolders": {
@@ -3698,7 +3699,7 @@
           },
           "Microsoft.AspNetCore.OpenApi": {
             "target": "Package",
-            "version": "[10.0.5, )"
+            "version": "[10.0.8, )"
           },
           "Microsoft.EntityFrameworkCore.Design": {
             "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
@@ -3717,6 +3718,10 @@
             "version": "[10.0.8, )"
           },
           "Swashbuckle.AspNetCore": {
+            "target": "Package",
+            "version": "[10.1.7, )"
+          },
+          "Swashbuckle.AspNetCore.SwaggerUI": {
             "target": "Package",
             "version": "[10.1.7, )"
           }
