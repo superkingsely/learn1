@@ -1,5 +1,6 @@
 
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,6 +8,7 @@ namespace auth_api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Admin,Teacher")] // Only allow users with the "Admin" and teacher role to access these endpoints
     public class UsersController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -21,7 +23,9 @@ namespace auth_api.Controllers
         {
             try
             {
-                var users = _context.Users.ToList();
+                var users = _context.Users
+                .Include(u => u.Roles)
+                .ToList();
                 var userDtos = users.Select(u => new UserResponseDto
                 {
                     Id = u.Id,
@@ -30,7 +34,12 @@ namespace auth_api.Controllers
                     CreatedAt = u.CreatedAt,
                     UpdatedAt = u.UpdatedAt,
                     UserType = u.UserType,
-                    Roles = u.Roles
+                    Roles = u.Roles.Select(r=>new RoleResponseDto
+                    {
+                        Id = r.Id,
+                        Name = r.Name,
+                        Description = r.Description
+                    }).ToList( )
                 }).ToList();
                 return Ok(userDtos);
             }
@@ -58,7 +67,13 @@ namespace auth_api.Controllers
                     CreatedAt = user.CreatedAt,
                     UpdatedAt = user.UpdatedAt,
                     UserType = user.UserType,
-                    Roles = user.Roles
+                    Roles = user.Roles.Select(r=>new RoleResponseDto
+                    {
+                        Id=r.Id,
+                        Name=r.Name,
+                        Description=r.Description
+
+                    }).ToList()
                 };
                 return Ok(userDto);
             }
@@ -70,50 +85,48 @@ namespace auth_api.Controllers
 
         [HttpPost("addUserRole")]
         public IActionResult AddUserRole(Guid userId, Guid roleId)
-{
-    try
-    {
-        var user = _context.Users
-            .Include(u => u.Roles)
-            .FirstOrDefault(u => u.Id == userId);
-
-        if (user == null)
         {
-            return NotFound(new { Message = "User not found" });
+            try
+            {
+                var user = _context.Users
+                    .Include(u => u.Roles)
+                    .FirstOrDefault(u => u.Id == userId);
+
+                if (user == null)
+                {
+                    return NotFound(new { Message = "User not found" });
+                }
+
+                var role = _context.Roles.FirstOrDefault(r => r.Id == roleId);
+
+                if (role == null)
+                {
+                    return NotFound(new { Message = "Role not found" });
+                }
+
+                // avoid duplicates
+                if (!user.Roles.Any(r => r.Id == roleId))
+                {
+                    user.Roles.Add(role);
+                }
+
+                // optional
+                user.UserType = role.Name;
+
+                _context.SaveChanges();
+
+                return Ok(new { Message = "Role added successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    Message = $"Error occurred: {ex.Message}"
+                });
+            }
         }
-
-        var role = _context.Roles.FirstOrDefault(r => r.Id == roleId);
-
-        if (role == null)
-        {
-            return NotFound(new { Message = "Role not found" });
-        }
-
-        // avoid duplicates
-        if (!user.Roles.Any(r => r.Id == roleId))
-        {
-            user.Roles.Add(role);
-        }
-
-        // optional
-        user.UserType = role.Name;
-
-        _context.SaveChanges();
-
-        return Ok(new { Message = "Role added successfully" });
-    }
-    catch (Exception ex)
-    {
-        return StatusCode(500, new
-        {
-            Message = $"Error occurred: {ex.Message}"
-        });
-    }
-}
 
         /// <summary>Adds a role to a user.</summary>
-        /// <param name="id">The user ID.</param>
-        /// <param name="role">The role to add.</param>
         /// <returns>The result of the operation.</returns>
        
     //    #region 

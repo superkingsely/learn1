@@ -161,3 +161,4 @@ C:\Users\Fusion Inteligence\Desktop\my-work\learn1\dotnet\auth\auth-api\bin\Debu
 C:\Users\Fusion Inteligence\Desktop\my-work\learn1\dotnet\auth\auth-api\bin\Debug\net10.0\zh-Hans\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
 C:\Users\Fusion Inteligence\Desktop\my-work\learn1\dotnet\auth\auth-api\bin\Debug\net10.0\zh-Hant\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
 C:\Users\Fusion Inteligence\Desktop\my-work\learn1\DotNet\auth\auth-api\bin\Debug\net10.0\BCrypt-Net-Next.dll
+C:\Users\Fusion Inteligence\Desktop\my-work\learn1\DotNet\auth\auth-api\bin\Debug\net10.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll

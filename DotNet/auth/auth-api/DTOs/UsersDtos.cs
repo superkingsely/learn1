@@ -8,5 +8,5 @@ public class UserResponseDto
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public string UserType { get; set; }= "Regular";
-    public List<Role> Roles { get; set; } = new List<Role>();
+    public List<RoleResponseDto> Roles { get; set; } = new List<RoleResponseDto>();
 }
