@@ -33,26 +33,26 @@ option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
 {
     Name = "Authorization",
     Type = SecuritySchemeType.Http,
-    Scheme = "Bearer",
+    Scheme = "bearer",
     BearerFormat = "JWT",
     In = ParameterLocation.Header,
     Description = "Enter JWT like: Bearer {your token}"
 });
 
-// option.AddSecurityRequirement(new OpenApiSecurityRequirement
-// {
-//     {
-//         new OpenApiSecurityScheme
-//         {
-//             Reference = new OpenApiReference
-//             {
-//                 Type = ReferenceType.SecurityScheme,
-//                 Id = "Bearer"
-//             }
-//         },
-//         Array.Empty<string>()
-//     }
-// });
+option.AddSecurityRequirement(new OpenApiSecurityRequirement
+{
+    {
+        new OpenApiSecurityScheme
+        {
+            Reference = new OpenApiReference
+            {
+                Type = ReferenceType.SecurityScheme,
+                Id = "Bearer"
+            }
+        },
+        Array.Empty<string>()
+    }
+});
     
     // option.AddSecurityRequirement(new OpenApiSecurityRequirement
     // {
