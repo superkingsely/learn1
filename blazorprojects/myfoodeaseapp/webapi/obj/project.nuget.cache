@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "eRhSlUkvYig=",
+  "dgSpecHash": "mSbdi2+/JC8=",
   "success": true,
-  "projectFilePath": "c:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\blazorprojects\\myfoodeaseapp\\webapi\\webapi.csproj",
+  "projectFilePath": "C:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\blazorprojects\\myfoodeaseapp\\webapi\\webapi.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Fusion Inteligence\\.nuget\\packages\\azure.core\\1.47.1\\azure.core.1.47.1.nupkg.sha512",
     "C:\\Users\\Fusion Inteligence\\.nuget\\packages\\azure.identity\\1.14.2\\azure.identity.1.14.2.nupkg.sha512",
@@ -47,9 +47,9 @@
       "code": "NU1510",
       "level": "Warning",
       "message": "PackageReference Microsoft.AspNetCore.Identity will not be pruned. Consider removing this package from your dependencies, as it is likely unnecessary.",
-      "projectPath": "c:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\blazorprojects\\myfoodeaseapp\\webapi\\webapi.csproj",
+      "projectPath": "C:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\blazorprojects\\myfoodeaseapp\\webapi\\webapi.csproj",
       "warningLevel": 1,
-      "filePath": "c:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\blazorprojects\\myfoodeaseapp\\webapi\\webapi.csproj",
+      "filePath": "C:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\blazorprojects\\myfoodeaseapp\\webapi\\webapi.csproj",
       "libraryId": "Microsoft.AspNetCore.Identity",
       "targetGraphs": [
         "net10.0"

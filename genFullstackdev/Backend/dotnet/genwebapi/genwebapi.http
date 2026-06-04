@@ -1,0 +1,6 @@
+@genwebapi_HostAddress = http://localhost:5047
+
+GET {{genwebapi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

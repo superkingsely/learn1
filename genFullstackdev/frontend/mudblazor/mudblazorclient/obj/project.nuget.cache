@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "rsbry61TdQg=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\genFullstackdev\\frontend\\mudblazor\\mudblazorclient\\mudblazorclient.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Fusion Inteligence\\.nuget\\packages\\microsoft.aspnetcore.app.internal.assets\\10.0.5\\microsoft.aspnetcore.app.internal.assets.10.0.5.nupkg.sha512",
+    "C:\\Users\\Fusion Inteligence\\.nuget\\packages\\mudblazor\\9.5.0\\mudblazor.9.5.0.nupkg.sha512"
+  ],
+  "logs": []
+}

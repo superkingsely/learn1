@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "c:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\blazorprojects\\myfoodeaseapp\\webapi\\webapi.csproj": {}
+    "C:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\blazorprojects\\myfoodeaseapp\\webapi\\webapi.csproj": {}
   },
   "projects": {
-    "c:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\blazorprojects\\myfoodeaseapp\\webapi\\webapi.csproj": {
+    "C:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\blazorprojects\\myfoodeaseapp\\webapi\\webapi.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "c:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\blazorprojects\\myfoodeaseapp\\webapi\\webapi.csproj",
+        "projectUniqueName": "C:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\blazorprojects\\myfoodeaseapp\\webapi\\webapi.csproj",
         "projectName": "webapi",
-        "projectPath": "c:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\blazorprojects\\myfoodeaseapp\\webapi\\webapi.csproj",
+        "projectPath": "C:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\blazorprojects\\myfoodeaseapp\\webapi\\webapi.csproj",
         "packagesPath": "C:\\Users\\Fusion Inteligence\\.nuget\\packages\\",
-        "outputPath": "c:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\blazorprojects\\myfoodeaseapp\\webapi\\obj\\",
+        "outputPath": "C:\\Users\\Fusion Inteligence\\Desktop\\my-work\\learn1\\blazorprojects\\myfoodeaseapp\\webapi\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Fusion Inteligence\\AppData\\Roaming\\NuGet\\NuGet.Config"
